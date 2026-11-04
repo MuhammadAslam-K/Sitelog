@@ -1,0 +1,562 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "Construction and roadwork project details",
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "Sequential project identifier (e.g., PRJ-101)",
+          "pattern": "^PRJ-[0-9]+$"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "Name of the construction road project",
+          "minLength": 2,
+          "maxLength": 150
+        },
+        "localBody": {
+          "type": "string",
+          "description": "Local governing body administering the contract",
+          "enum": [
+            "Grama Panchayat",
+            "Block Panchayat",
+            "District Panchayat",
+            "Municipality",
+            "Corporation",
+            "Other"
+          ]
+        },
+        "workType": {
+          "type": "string",
+          "description": "Type of roadwork construction activity",
+          "enum": [
+            "Tarring",
+            "Road Construction",
+            "Road Maintenance",
+            "Drainage Work",
+            "Concrete Road",
+            "Other"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Scheduled or actual start date of the project (YYYY-MM-DD)"
+        },
+        "contractValue": {
+          "type": "number",
+          "description": "Total awarded contract value in INR"
+        },
+        "status": {
+          "type": "string",
+          "description": "Operational status of the project",
+          "enum": [
+            "Ongoing",
+            "Completed",
+            "Pending",
+            "On Hold"
+          ]
+        },
+        "isArchived": {
+          "type": "boolean",
+          "description": "Flag indicating if the project has been archived"
+        },
+        "otherTotalExpenses": {
+          "type": "number",
+          "description": "Total other project expenses recorded in INR"
+        },
+        "totalLabourExpenses": {
+          "type": "number",
+          "description": "Total labour and wage expenses recorded in INR"
+        },
+        "totalBudget": {
+          "type": "number",
+          "description": "Sum of other expenses and labour expenses in INR"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Email or user ID of the creator"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the project record was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the project record was last modified"
+        }
+      },
+      "required": [
+        "projectId",
+        "projectName",
+        "localBody",
+        "workType",
+        "startDate",
+        "contractValue",
+        "status",
+        "otherTotalExpenses",
+        "totalLabourExpenses",
+        "totalBudget"
+      ]
+    },
+    "Employee": {
+      "title": "Employee",
+      "description": "Staff, drivers, supervisors and construction workforce directory",
+      "type": "object",
+      "properties": {
+        "employeeId": {
+          "type": "string",
+          "description": "Sequential employee identifier (e.g., EMP-101)",
+          "pattern": "^EMP-[0-9]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full legal name of the employee or workforce member",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact telephone or mobile phone number",
+          "minLength": 7,
+          "maxLength": 20
+        },
+        "role": {
+          "type": "string",
+          "description": "Designation or trade role of the worker",
+          "enum": [
+            "Supervisor",
+            "Driver",
+            "Site Engineer",
+            "Heavy Machinery Operator",
+            "Paver Operator",
+            "Mason",
+            "Helper / Labourer",
+            "Other"
+          ]
+        },
+        "joiningDate": {
+          "type": "string",
+          "description": "Date of induction or employment commencement (YYYY-MM-DD)"
+        },
+        "dailyWageRate": {
+          "type": "number",
+          "description": "Standard daily wage allowance rate in INR"
+        },
+        "status": {
+          "type": "string",
+          "description": "Active or inactive employment standing",
+          "enum": ["Active", "Inactive"]
+        },
+        "pendingWages": {
+          "type": "number",
+          "description": "Cumulative unpaid wage balance to date in INR"
+        },
+        "paidWages": {
+          "type": "number",
+          "description": "Cumulative disbursed wages in INR"
+        },
+        "totalWages": {
+          "type": "number",
+          "description": "Aggregate accrued gross wage liability (pending + paid) in INR"
+        },
+        "isArchived": {
+          "type": "boolean",
+          "description": "Soft deletion flag to maintain historical payroll linkages"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Creator user identifier or email"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the record was initiated"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the record was last altered"
+        }
+      },
+      "required": [
+        "employeeId",
+        "name",
+        "phone",
+        "role",
+        "joiningDate",
+        "status",
+        "pendingWages",
+        "paidWages",
+        "totalWages"
+      ]
+    },
+    "DailyWage": {
+      "title": "DailyWage",
+      "description": "Daily muster roll, attendance, site wages, advance payments and balance tracking",
+      "type": "object",
+      "properties": {
+        "wageId": {
+          "type": "string",
+          "description": "Sequential wage entry identifier (e.g., WAG-101)",
+          "pattern": "^WAG-[0-9]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Work date of the muster roll entry (YYYY-MM-DD)"
+        },
+        "employeeId": {
+          "type": "string",
+          "description": "Reference identifier of the employee from the employees collection"
+        },
+        "employeeName": {
+          "type": "string",
+          "description": "Name of the employee"
+        },
+        "employeeRole": {
+          "type": "string",
+          "description": "Role of the employee"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Reference identifier of the project or work assignment"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "Name of the assigned construction road project"
+        },
+        "attendance": {
+          "type": "string",
+          "description": "Attendance standing for the work day",
+          "enum": ["Present", "Half Day", "Absent / On Leave"]
+        },
+        "wages": {
+          "type": "number",
+          "description": "Earned wage amount for the day in INR (0 if absent)"
+        },
+        "advance": {
+          "type": "number",
+          "description": "Advance or cash disbursement given to the worker today in INR"
+        },
+        "balance": {
+          "type": "number",
+          "description": "Net wage balance for the day (wages - advance) in INR"
+        },
+        "status": {
+          "type": "string",
+          "description": "Settlement status of the daily wage (Pending, Paid, Partial, Advance on Leave)",
+          "enum": ["Pending", "Paid", "Partial", "Advance on Leave"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional engineer or site supervisor notes"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "User identifier who created this record"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record update timestamp"
+        }
+      },
+      "required": [
+        "wageId",
+        "date",
+        "employeeId",
+        "employeeName",
+        "projectId",
+        "projectName",
+        "attendance",
+        "wages",
+        "advance",
+        "balance"
+      ]
+    },
+    "DailyExpense": {
+      "title": "DailyExpense",
+      "description": "Daily project and site expenditures categorized by vehicle, material, fuel, food, and other",
+      "type": "object",
+      "properties": {
+        "expenseId": {
+          "type": "string",
+          "description": "Sequential expense identifier (e.g., EXP-101)",
+          "pattern": "^EXP-[0-9]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date the expense was incurred (YYYY-MM-DD)"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Reference identifier of the project or GENERAL for site overheads"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "Name of the construction road project"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the expense",
+          "enum": ["vehicle", "material", "fuel", "food", "other"]
+        },
+        "item": {
+          "type": "string",
+          "description": "Description of the expense item or purchase",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "amount": {
+          "type": "number",
+          "description": "Total expense amount incurred in INR",
+          "minimum": 0
+        },
+        "quantity": {
+          "type": ["string", "number", "null"],
+          "description": "Optional quantity with units (e.g., 50 Litres, 2 Loads, 10 Bags)"
+        },
+        "agent": {
+          "type": ["string", "null"],
+          "description": "Optional agent, vendor, payee, supplier, or contractor name"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional supervisor remarks or invoice reference"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "User identifier who created this expense record"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": [
+        "expenseId",
+        "date",
+        "projectId",
+        "projectName",
+        "category",
+        "item",
+        "amount"
+      ]
+    },
+    "Material": {
+      "title": "Material",
+      "description": "Construction material procurement, supplies, quantities, agents/vendors and amounts",
+      "type": "object",
+      "properties": {
+        "materialId": {
+          "type": "string",
+          "description": "Sequential material identifier (e.g., MAT-101)",
+          "pattern": "^MAT-[0-9]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date material was supplied or received (YYYY-MM-DD)"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Reference identifier of the road project or GENERAL"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "Name of the construction road project"
+        },
+        "item": {
+          "type": "string",
+          "description": "Name of the material item (e.g. Bitumen VG-30, M-Sand, 20mm Aggregates, Cement)",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "quantity": {
+          "type": ["string", "number"],
+          "description": "Quantity supplied with units (e.g., 20 Tons, 400 Bags, 4 Loads, 50 Cu.m)"
+        },
+        "agent": {
+          "type": "string",
+          "description": "Agent, vendor, quarry supplier, dealer, or transporter name",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "amount": {
+          "type": "number",
+          "description": "Total procurement cost or invoice amount in INR",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "description": "Optional unit of measurement (Tons, Bags, Loads, Cu.m, Litres, Kg, Brass, Sq.ft)"
+        },
+        "ratePerUnit": {
+          "type": "number",
+          "description": "Optional calculated or provided unit rate in INR"
+        },
+        "vehicleNumber": {
+          "type": "string",
+          "description": "Optional delivery tipper or lorry vehicle registration number"
+        },
+        "challanNo": {
+          "type": "string",
+          "description": "Optional delivery challan or invoice bill number"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the delivery or payment",
+          "enum": ["Received", "Pending Payment", "Paid", "In Transit"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional engineer or site supervisor remarks"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "User identifier who created this material record"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record last update timestamp"
+        }
+      },
+      "required": [
+        "materialId",
+        "date",
+        "projectId",
+        "projectName",
+        "item",
+        "quantity",
+        "agent",
+        "amount"
+      ]
+    },
+    "Counter": {
+      "title": "Counter",
+      "description": "Atomic sequential counters tracking IDs for projects, employees, and wages",
+      "type": "object",
+      "properties": {
+        "currentSeq": {
+          "type": "number",
+          "description": "Current sequential numeric index"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the last counter update"
+        }
+      },
+      "required": ["currentSeq"]
+    },
+    "SystemUser": {
+      "title": "SystemUser",
+      "description": "Super Admin and Sub-Admin accounts with role-based module access control (RBAC)",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique user account ID"
+        },
+        "username": {
+          "type": "string",
+          "description": "Login username",
+          "minLength": 3,
+          "maxLength": 60
+        },
+        "name": {
+          "type": "string",
+          "description": "Full legal or operational name",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Registered email ID used for password verification and reset",
+          "format": "email"
+        },
+        "password": {
+          "type": "string",
+          "description": "User login password",
+          "minLength": 6
+        },
+        "role": {
+          "type": "string",
+          "description": "User authority role",
+          "enum": ["Super Admin", "Sub Admin"]
+        },
+        "designation": {
+          "type": "string",
+          "description": "Staff title or job description"
+        },
+        "status": {
+          "type": "string",
+          "description": "Account status",
+          "enum": ["Active", "Disabled"]
+        },
+        "permissions": {
+          "type": "object",
+          "description": "Granular module access matrix (none, view, edit)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "username", "name", "email", "password", "role", "status"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collection of all road infrastructure projects"
+    },
+    "/employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Workforce registry with roles, contact numbers, and wage aggregations"
+    },
+    "/dailyWages/{wageId}": {
+      "schema": "DailyWage",
+      "description": "Daily muster roll entries, attendance, site wages, advances, and balances"
+    },
+    "/dailyExpenses/{expenseId}": {
+      "schema": "DailyExpense",
+      "description": "Daily project expenses (vehicle, material, fuel, food, other)"
+    },
+    "/materials/{materialId}": {
+      "schema": "Material",
+      "description": "Phase 5 Materials registry (date, project, item, quantity, agent, amount)"
+    },
+    "/systemUsers/{userId}": {
+      "schema": "SystemUser",
+      "description": "Admin and Sub-Admin authentication accounts & RBAC matrix"
+    },
+    "/counters/{counterId}": {
+      "schema": "Counter",
+      "description": "Sequential counters for unique ID generation"
+    }
+  }
+}

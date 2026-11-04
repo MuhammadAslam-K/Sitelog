@@ -1,0 +1,259 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'aslamka.2k3@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidProject(data) {
+      return data.projectId is string &&
+             data.projectId.size() <= 50 &&
+             data.projectName is string &&
+             data.projectName.size() >= 2 &&
+             data.projectName.size() <= 150 &&
+             data.localBody is string &&
+             data.localBody in ['Grama Panchayat', 'Block Panchayat', 'District Panchayat', 'Municipality', 'Corporation', 'Other'] &&
+             data.workType is string &&
+             data.workType in ['Tarring', 'Road Construction', 'Road Maintenance', 'Drainage Work', 'Concrete Road', 'Other'] &&
+             data.startDate is string &&
+             data.startDate.size() <= 30 &&
+             data.contractValue is number &&
+             data.contractValue >= 0 &&
+             data.status in ['Ongoing', 'Completed', 'Pending', 'On Hold'] &&
+             data.otherTotalExpenses is number &&
+             data.otherTotalExpenses >= 0 &&
+             data.totalLabourExpenses is number &&
+             data.totalLabourExpenses >= 0 &&
+             data.totalBudget is number &&
+             data.totalBudget >= 0;
+    }
+
+    function isValidEmployee(data) {
+      return data.employeeId is string &&
+             data.employeeId.size() <= 50 &&
+             data.name is string &&
+             data.name.size() >= 2 &&
+             data.name.size() <= 100 &&
+             data.phone is string &&
+             data.phone.size() >= 7 &&
+             data.phone.size() <= 20 &&
+             data.role is string &&
+             data.role.size() <= 60 &&
+             data.joiningDate is string &&
+             data.joiningDate.size() <= 30 &&
+             data.status in ['Active', 'Inactive'] &&
+             data.pendingWages is number &&
+             data.pendingWages >= 0 &&
+             data.paidWages is number &&
+             data.paidWages >= 0 &&
+             data.totalWages is number &&
+             data.totalWages >= 0;
+    }
+
+    function isValidDailyWage(data) {
+      return data.wageId is string &&
+             data.wageId.size() <= 50 &&
+             data.date is string &&
+             data.date.size() <= 30 &&
+             data.employeeId is string &&
+             data.employeeId.size() <= 50 &&
+             data.employeeName is string &&
+             data.employeeName.size() >= 2 &&
+             data.employeeName.size() <= 100 &&
+             data.projectId is string &&
+             data.projectId.size() <= 50 &&
+             data.projectName is string &&
+             data.projectName.size() <= 150 &&
+             data.attendance in ['Present', 'Half Day', 'Absent / On Leave'] &&
+             data.wages is number &&
+             data.wages >= 0 &&
+             data.advance is number &&
+             data.advance >= 0 &&
+             data.balance is number &&
+             (!('status' in data) || data.status in ['Pending', 'Paid', 'Partial', 'Advance on Leave']);
+    }
+
+    function isValidExpense(data) {
+      return data.expenseId is string &&
+             data.expenseId.size() <= 50 &&
+             data.date is string &&
+             data.date.size() <= 30 &&
+             data.projectId is string &&
+             data.projectId.size() <= 100 &&
+             data.projectName is string &&
+             data.projectName.size() <= 200 &&
+             data.category in ['vehicle', 'material', 'fuel', 'food', 'other'] &&
+             data.item is string &&
+             data.item.size() >= 1 &&
+             data.item.size() <= 200 &&
+             data.amount is number &&
+             data.amount >= 0;
+    }
+
+    function isValidMaterial(data) {
+      return data.materialId is string &&
+             data.materialId.size() <= 50 &&
+             data.date is string &&
+             data.date.size() <= 30 &&
+             data.projectId is string &&
+             data.projectId.size() <= 100 &&
+             data.projectName is string &&
+             data.projectName.size() <= 200 &&
+             data.item is string &&
+             data.item.size() >= 1 &&
+             data.item.size() <= 200 &&
+             (data.quantity is string || data.quantity is number) &&
+             data.agent is string &&
+             data.agent.size() >= 1 &&
+             data.agent.size() <= 150 &&
+             data.amount is number &&
+             data.amount >= 0;
+    }
+
+    function isValidSystemUser(data) {
+      return data.userId is string &&
+             data.userId.size() <= 100 &&
+             data.username is string &&
+             data.username.size() >= 2 &&
+             data.username.size() <= 60 &&
+             data.name is string &&
+             data.name.size() >= 2 &&
+             data.name.size() <= 100 &&
+             data.email is string &&
+             data.email.size() >= 5 &&
+             data.email.size() <= 120 &&
+             data.password is string &&
+             data.password.size() >= 4 &&
+             data.role in ['Super Admin', 'Sub Admin'] &&
+             data.status in ['Active', 'Disabled'];
+    }
+
+    // Projects collection
+    match /projects/{projectId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                    isValidId(projectId) &&
+                    isValidProject(incoming()) &&
+                    incoming().createdAt is string;
+
+      allow update: if isSignedIn() &&
+                    isValidProject(incoming()) &&
+                    incoming().projectId == existing().projectId;
+
+      allow delete: if isAdmin();
+    }
+
+    // Employees collection
+    match /employees/{employeeId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                    isValidId(employeeId) &&
+                    isValidEmployee(incoming()) &&
+                    incoming().createdAt is string;
+
+      allow update: if isSignedIn() &&
+                    isValidEmployee(incoming()) &&
+                    incoming().employeeId == existing().employeeId;
+
+      allow delete: if isAdmin();
+    }
+
+    // Daily Wages collection
+    match /dailyWages/{wageId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                    isValidId(wageId) &&
+                    isValidDailyWage(incoming()) &&
+                    incoming().createdAt is string;
+
+      allow update: if isSignedIn() &&
+                    isValidDailyWage(incoming()) &&
+                    incoming().wageId == existing().wageId;
+
+      allow delete: if isSignedIn();
+    }
+
+    // Daily Expenses collection
+    match /dailyExpenses/{expenseId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                    isValidId(expenseId) &&
+                    isValidExpense(incoming()) &&
+                    incoming().createdAt is string;
+
+      allow update: if isSignedIn() &&
+                    isValidExpense(incoming()) &&
+                    incoming().expenseId == existing().expenseId;
+
+      allow delete: if isSignedIn();
+    }
+
+    // Materials collection (Phase 5)
+    match /materials/{materialId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                    isValidId(materialId) &&
+                    isValidMaterial(incoming()) &&
+                    incoming().createdAt is string;
+
+      allow update: if isSignedIn() &&
+                    isValidMaterial(incoming()) &&
+                    incoming().materialId == existing().materialId;
+
+      allow delete: if isSignedIn();
+    }
+
+    // System Users collection (Super Admin & Sub-Admins)
+    match /systemUsers/{userId} {
+      allow read: if true;
+      allow create, update: if isValidId(userId) && isValidSystemUser(incoming());
+      allow delete: if true;
+    }
+
+    // Sequential counters for atomic ID generation
+    match /counters/{counterId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() &&
+                            isValidId(counterId) &&
+                            counterId in ['projects', 'employees', 'wages', 'expenses', 'materials'] &&
+                            incoming().currentSeq is number &&
+                            incoming().currentSeq >= 100;
+      allow delete: if false;
+    }
+
+    // Test connection doc
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}

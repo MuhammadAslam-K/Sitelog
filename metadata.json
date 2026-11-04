@@ -1,0 +1,8 @@
+{
+  "name": "Kerala Roadways PMS",
+  "description": "Enterprise Construction & Road Project Management System for Kerala Infrastructure Works.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
