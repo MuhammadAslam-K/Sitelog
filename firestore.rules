@@ -157,80 +157,70 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow read: if true;
 
-      allow create: if isSignedIn() &&
-                    isValidId(projectId) &&
+      allow create: if isValidId(projectId) &&
                     isValidProject(incoming()) &&
                     incoming().createdAt is string;
 
-      allow update: if isSignedIn() &&
-                    isValidProject(incoming()) &&
+      allow update: if isValidProject(incoming()) &&
                     incoming().projectId == existing().projectId;
 
-      allow delete: if isAdmin();
+      allow delete: if true;
     }
 
     // Employees collection
     match /employees/{employeeId} {
       allow read: if true;
 
-      allow create: if isSignedIn() &&
-                    isValidId(employeeId) &&
+      allow create: if isValidId(employeeId) &&
                     isValidEmployee(incoming()) &&
                     incoming().createdAt is string;
 
-      allow update: if isSignedIn() &&
-                    isValidEmployee(incoming()) &&
+      allow update: if isValidEmployee(incoming()) &&
                     incoming().employeeId == existing().employeeId;
 
-      allow delete: if isAdmin();
+      allow delete: if true;
     }
 
     // Daily Wages collection
     match /dailyWages/{wageId} {
       allow read: if true;
 
-      allow create: if isSignedIn() &&
-                    isValidId(wageId) &&
+      allow create: if isValidId(wageId) &&
                     isValidDailyWage(incoming()) &&
                     incoming().createdAt is string;
 
-      allow update: if isSignedIn() &&
-                    isValidDailyWage(incoming()) &&
+      allow update: if isValidDailyWage(incoming()) &&
                     incoming().wageId == existing().wageId;
 
-      allow delete: if isSignedIn();
+      allow delete: if true;
     }
 
     // Daily Expenses collection
     match /dailyExpenses/{expenseId} {
       allow read: if true;
 
-      allow create: if isSignedIn() &&
-                    isValidId(expenseId) &&
+      allow create: if isValidId(expenseId) &&
                     isValidExpense(incoming()) &&
                     incoming().createdAt is string;
 
-      allow update: if isSignedIn() &&
-                    isValidExpense(incoming()) &&
+      allow update: if isValidExpense(incoming()) &&
                     incoming().expenseId == existing().expenseId;
 
-      allow delete: if isSignedIn();
+      allow delete: if true;
     }
 
     // Materials collection (Phase 5)
     match /materials/{materialId} {
       allow read: if true;
 
-      allow create: if isSignedIn() &&
-                    isValidId(materialId) &&
+      allow create: if isValidId(materialId) &&
                     isValidMaterial(incoming()) &&
                     incoming().createdAt is string;
 
-      allow update: if isSignedIn() &&
-                    isValidMaterial(incoming()) &&
+      allow update: if isValidMaterial(incoming()) &&
                     incoming().materialId == existing().materialId;
 
-      allow delete: if isSignedIn();
+      allow delete: if true;
     }
 
     // System Users collection (Super Admin & Sub-Admins)
@@ -243,12 +233,11 @@ service cloud.firestore {
     // Sequential counters for atomic ID generation
     match /counters/{counterId} {
       allow read: if true;
-      allow create, update: if isSignedIn() &&
-                            isValidId(counterId) &&
+      allow create, update: if isValidId(counterId) &&
                             counterId in ['projects', 'employees', 'wages', 'expenses', 'materials'] &&
                             incoming().currentSeq is number &&
                             incoming().currentSeq >= 100;
-      allow delete: if false;
+      allow delete: if true;
     }
 
     // Test connection doc

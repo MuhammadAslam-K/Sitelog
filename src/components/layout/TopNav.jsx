@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { COMPANY_NAME } from '../../utils/constants.js';
+import { PWAInstallButton } from '../pwa/PWAInstallButton.jsx';
 
 export function TopNav({ 
   pageTitle, 
@@ -75,7 +76,10 @@ export function TopNav({
         </div>
 
         {/* Right: Database Status & User Profile / Logout */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* PWA In-App Install Prompt */}
+          <PWAInstallButton />
+
           {/* Live Firestore DB Indicator */}
           <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[11px] font-semibold text-emerald-800">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>

@@ -71,6 +71,8 @@ import {
   deleteSubAdmin
 } from './firebase/userService.js';
 import { Loader2, HardHat } from 'lucide-react';
+import { PWAUpdatePrompt } from './components/pwa/PWAUpdatePrompt.jsx';
+import { OfflineIndicator } from './components/pwa/OfflineIndicator.jsx';
 
 function ConstructionApp() {
   const { 
@@ -1102,6 +1104,10 @@ function ConstructionApp() {
         notification={notification}
         onDismiss={() => setNotification(null)}
       />
+
+      {/* PWA Version Update Notification & Live Offline Status Indicator */}
+      <PWAUpdatePrompt />
+      <OfflineIndicator />
     </Layout>
   );
 }

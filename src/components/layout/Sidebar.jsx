@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { NAVIGATION_ITEMS, COMPANY_NAME, COMPANY_TAGLINE } from '../../utils/constants.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { PWAInstallButton } from '../pwa/PWAInstallButton.jsx';
 
 const ICON_MAP = {
   LayoutDashboard,
@@ -149,6 +150,11 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
             {upcomingItems.map(renderNavItem)}
           </div>
         </div>
+      </div>
+
+      {/* PWA In-App Installation Action */}
+      <div className="px-4 py-2.5 border-t border-emerald-900/60 bg-emerald-950/60">
+        <PWAInstallButton variant="sidebar" />
       </div>
 
       {/* Footer Info */}

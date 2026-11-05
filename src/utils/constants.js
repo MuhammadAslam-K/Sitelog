@@ -201,5 +201,5 @@ export const DEFAULT_SUPER_ADMIN = {
   }
 };
 
-export const COMPANY_NAME = "Travancore Roadways & Infra";
+export const COMPANY_NAME = "Roadways & Infra";
 export const COMPANY_TAGLINE = "Kerala Infrastructure & Highway Construction";
