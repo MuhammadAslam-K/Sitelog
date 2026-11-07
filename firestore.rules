@@ -227,7 +227,8 @@ service cloud.firestore {
     match /systemUsers/{userId} {
       allow read: if true;
       allow create, update: if isValidId(userId) && isValidSystemUser(incoming());
-      allow delete: if true;
+      // Primary Super Admin can never be deleted
+      allow delete: if isValidId(userId) && userId != 'usr-super-admin' && userId != 'usr-admin-001';
     }
 
     // Sequential counters for atomic ID generation
@@ -237,7 +238,8 @@ service cloud.firestore {
                             counterId in ['projects', 'employees', 'wages', 'expenses', 'materials'] &&
                             incoming().currentSeq is number &&
                             incoming().currentSeq >= 100;
-      allow delete: if true;
+      // Counters must never be deleted to preserve sequence continuity
+      allow delete: if false;
     }
 
     // Test connection doc

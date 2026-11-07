@@ -22,6 +22,7 @@ import { SettingsView } from './components/settings/SettingsView.jsx';
 import { SubAdminFormModal } from './components/settings/SubAdminFormModal.jsx';
 import { DeleteSubAdminModal } from './components/settings/DeleteSubAdminModal.jsx';
 import { LoginModal } from './components/auth/LoginModal.jsx';
+import { LoginPage } from './components/auth/LoginPage.jsx';
 import { PasswordResetModal } from './components/auth/PasswordResetModal.jsx';
 import { UpcomingModule } from './components/common/UpcomingModule.jsx';
 import { NotificationToast } from './components/common/NotificationToast.jsx';
@@ -77,9 +78,11 @@ import { OfflineIndicator } from './components/pwa/OfflineIndicator.jsx';
 function ConstructionApp() {
   const { 
     currentUser, 
+    isAuthChecking,
     isSuperAdmin,
     canEditModule,
     canViewModule,
+    hasModuleAccess,
     isLoginModalOpen, 
     setIsLoginModalOpen, 
     isPasswordResetModalOpen, 
@@ -88,6 +91,41 @@ function ConstructionApp() {
 
   const [currentSection, setCurrentSection] = useState('dashboard');
   
+  // URL Hash routing and back-button / bfcache protection
+  useEffect(() => {
+    const handleLocationSync = () => {
+      const hash = window.location.hash.replace('#', '');
+      const validSections = ['dashboard', 'projects', 'employees', 'wages', 'expenses', 'materials', 'settings', 'machinery', 'progress', 'reports'];
+      if (hash && validSections.includes(hash)) {
+        if (currentUser) {
+          if (hash === 'settings' && !isSuperAdmin) {
+            setCurrentSection('dashboard');
+          } else if (!hasModuleAccess(hash, 'view')) {
+            setCurrentSection('dashboard');
+          } else {
+            setCurrentSection(hash);
+          }
+        }
+      }
+    };
+
+    handleLocationSync();
+    window.addEventListener('hashchange', handleLocationSync);
+
+    // Invalidate stale pages if browser back button is used after logout
+    const handlePageShow = (event) => {
+      if (event.persisted && !currentUser) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      window.removeEventListener('hashchange', handleLocationSync);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, [currentUser, isSuperAdmin, hasModuleAccess]);
+
   // Projects State
   const [projects, setProjects] = useState([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -157,8 +195,14 @@ function ConstructionApp() {
     }, 5000);
   };
 
-  // Subscribe to live Firestore projects collection
+  // Subscribe to live Firestore projects collection (strictly protected)
   useEffect(() => {
+    if (!currentUser) {
+      setProjects([]);
+      setIsLoadingProjects(false);
+      return;
+    }
+
     setIsLoadingProjects(true);
     const unsubscribe = subscribeToProjects(
       (liveProjects) => {
@@ -178,10 +222,16 @@ function ConstructionApp() {
     );
 
     return () => unsubscribe();
-  }, [selectedProject?.projectId]);
+  }, [currentUser?.userId, selectedProject?.projectId]);
 
-  // Subscribe to live Firestore employees collection
+  // Subscribe to live Firestore employees collection (strictly protected)
   useEffect(() => {
+    if (!currentUser) {
+      setEmployees([]);
+      setIsLoadingEmployees(false);
+      return;
+    }
+
     setIsLoadingEmployees(true);
     const unsubscribe = subscribeToEmployees(
       (liveEmployees) => {
@@ -195,10 +245,16 @@ function ConstructionApp() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser?.userId]);
 
-  // Subscribe to live Firestore dailyWages collection
+  // Subscribe to live Firestore dailyWages collection (strictly protected)
   useEffect(() => {
+    if (!currentUser) {
+      setWages([]);
+      setIsLoadingWages(false);
+      return;
+    }
+
     setIsLoadingWages(true);
     const unsubscribe = subscribeToDailyWages(
       (liveWages) => {
@@ -212,10 +268,16 @@ function ConstructionApp() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser?.userId]);
 
-  // Subscribe to live Firestore dailyExpenses collection (Phase 3)
+  // Subscribe to live Firestore dailyExpenses collection (Phase 3 strictly protected)
   useEffect(() => {
+    if (!currentUser) {
+      setExpenses([]);
+      setIsLoadingExpenses(false);
+      return;
+    }
+
     setIsLoadingExpenses(true);
     const unsubscribe = subscribeToExpenses(
       (liveExpenses) => {
@@ -229,10 +291,16 @@ function ConstructionApp() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser?.userId]);
 
-  // Subscribe to live Firestore materials collection (Phase 5)
+  // Subscribe to live Firestore materials collection (Phase 5 strictly protected)
   useEffect(() => {
+    if (!currentUser) {
+      setMaterials([]);
+      setIsLoadingMaterials(false);
+      return;
+    }
+
     setIsLoadingMaterials(true);
     const unsubscribe = subscribeToMaterials(
       (liveMaterials) => {
@@ -246,10 +314,15 @@ function ConstructionApp() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser?.userId]);
 
-  // Subscribe to live Firestore systemUsers collection (Phase 8 Settings)
+  // Subscribe to live Firestore systemUsers collection (Phase 8 Settings - Super Admin only)
   useEffect(() => {
+    if (!currentUser || currentUser.role !== 'Super Admin') {
+      setSystemUsers([]);
+      return;
+    }
+
     const unsubscribe = subscribeToSystemUsers(
       (users) => {
         setSystemUsers(users);
@@ -260,7 +333,7 @@ function ConstructionApp() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser?.userId, currentUser?.role]);
 
   // --- Project Handlers ---
   const handleOpenAddProjectModal = async () => {
@@ -292,6 +365,15 @@ function ConstructionApp() {
   };
 
   const handleSaveProject = async (formData, docId) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required. Please log in.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('projects')) {
+      showToast('403 Forbidden: Your account does not have permission to edit projects.', 'error', 'Permission Denied');
+      return;
+    }
+
     try {
       if (docId) {
         await updateProject(docId, formData, currentUser);
@@ -310,6 +392,14 @@ function ConstructionApp() {
   };
 
   const handleConfirmArchiveProjectToggle = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('projects')) {
+      showToast('403 Forbidden: Insufficient permissions to archive projects.', 'error', 'Permission Denied');
+      return;
+    }
     if (!archiveTargetProject) return;
     try {
       const willArchive = !archiveTargetProject.isArchived;
@@ -332,6 +422,14 @@ function ConstructionApp() {
   };
 
   const handleSeedKeralaProjects = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Authentication required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('projects')) {
+      showToast('403 Forbidden: Insufficient permissions to seed data.', 'error', 'Permission Denied');
+      return;
+    }
     setIsSeedingProjects(true);
     try {
       const seeded = await seedSampleProjectsIfEmpty(currentUser);
@@ -378,6 +476,15 @@ function ConstructionApp() {
   };
 
   const handleSaveEmployee = async (formData, docId) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required. Please log in.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('employees')) {
+      showToast('403 Forbidden: Your account does not have permission to edit employees.', 'error', 'Permission Denied');
+      return;
+    }
+
     try {
       if (docId) {
         await updateEmployee(docId, formData, currentUser);
@@ -396,6 +503,14 @@ function ConstructionApp() {
   };
 
   const handleConfirmArchiveEmployeeToggle = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('employees')) {
+      showToast('403 Forbidden: Insufficient permissions to archive employees.', 'error', 'Permission Denied');
+      return;
+    }
     if (!archiveTargetEmployee) return;
     try {
       const willArchive = !archiveTargetEmployee.isArchived;
@@ -418,6 +533,14 @@ function ConstructionApp() {
   };
 
   const handleSeedEmployees = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Authentication required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('employees')) {
+      showToast('403 Forbidden: Insufficient permissions to seed employee records.', 'error', 'Permission Denied');
+      return;
+    }
     setIsSeedingEmployees(true);
     try {
       const seeded = await seedSampleEmployeesIfEmpty(currentUser);
@@ -464,6 +587,15 @@ function ConstructionApp() {
   };
 
   const handleSaveWage = async (formData, docId) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required. Please log in.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('wages')) {
+      showToast('403 Forbidden: Your account does not have permission to edit wage records.', 'error', 'Permission Denied');
+      return;
+    }
+
     try {
       if (docId) {
         await updateDailyWage(docId, formData, currentUser);
@@ -482,6 +614,14 @@ function ConstructionApp() {
   };
 
   const handleConfirmDeleteWage = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('wages')) {
+      showToast('403 Forbidden: Insufficient permissions to delete wage entries.', 'error', 'Permission Denied');
+      return;
+    }
     if (!deleteTargetWage) return;
     try {
       await deleteDailyWage(deleteTargetWage.id || deleteTargetWage.wageId);
@@ -495,6 +635,14 @@ function ConstructionApp() {
   };
 
   const handleSettleWage = async (wage) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('wages')) {
+      showToast('403 Forbidden: Insufficient permissions to settle wage payments.', 'error', 'Permission Denied');
+      return;
+    }
     try {
       await settleDailyWage(wage.id || wage.wageId, currentUser);
       showToast(`Wage entry ${wage.wageId} marked as fully Paid! Employee ledger updated.`, 'success', 'Wage Settled');
@@ -505,6 +653,14 @@ function ConstructionApp() {
   };
 
   const handleSeedDailyWages = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Authentication required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('wages')) {
+      showToast('403 Forbidden: Insufficient permissions to seed wage records.', 'error', 'Permission Denied');
+      return;
+    }
     setIsSeedingWages(true);
     try {
       const seeded = await seedSampleDailyWagesIfEmpty(employees, projects, currentUser);
@@ -551,6 +707,15 @@ function ConstructionApp() {
   };
 
   const handleSaveExpense = async (formData) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required. Please log in.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('expenses')) {
+      showToast('403 Forbidden: Your account does not have permission to edit expenses.', 'error', 'Permission Denied');
+      return;
+    }
+
     try {
       if (editingExpense) {
         await updateExpense(editingExpense.id || editingExpense.expenseId, formData, currentUser);
@@ -569,6 +734,14 @@ function ConstructionApp() {
   };
 
   const handleConfirmDeleteExpense = async (expenseEntry) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('expenses')) {
+      showToast('403 Forbidden: Insufficient permissions to delete expenses.', 'error', 'Permission Denied');
+      return;
+    }
     if (!expenseEntry) return;
     try {
       await deleteExpense(expenseEntry.id || expenseEntry.expenseId);
@@ -582,6 +755,14 @@ function ConstructionApp() {
   };
 
   const handleSeedDailyExpenses = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Authentication required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('expenses')) {
+      showToast('403 Forbidden: Insufficient permissions to seed expenses.', 'error', 'Permission Denied');
+      return;
+    }
     setIsSeedingExpenses(true);
     try {
       const count = await seedSampleExpensesIfEmpty(projects, currentUser);
@@ -621,6 +802,15 @@ function ConstructionApp() {
   };
 
   const handleSaveMaterial = async (formData) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required. Please log in.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('materials')) {
+      showToast('403 Forbidden: Your account does not have permission to edit materials.', 'error', 'Permission Denied');
+      return;
+    }
+
     try {
       if (editingMaterial) {
         await updateMaterial(editingMaterial.materialId || editingMaterial.id, formData);
@@ -639,6 +829,14 @@ function ConstructionApp() {
   };
 
   const handleConfirmDeleteMaterial = async (materialId) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('materials')) {
+      showToast('403 Forbidden: Insufficient permissions to delete materials.', 'error', 'Permission Denied');
+      return;
+    }
     try {
       await deleteMaterial(materialId);
       showToast(`Material record ${materialId} deleted successfully.`, 'info', 'Material Removed');
@@ -651,6 +849,14 @@ function ConstructionApp() {
   };
 
   const handleSeedMaterials = async () => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Authentication required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('materials')) {
+      showToast('403 Forbidden: Insufficient permissions to seed materials.', 'error', 'Permission Denied');
+      return;
+    }
     setIsSeedingMaterials(true);
     try {
       const res = await seedSampleMaterialsIfEmpty(projects);
@@ -667,23 +873,44 @@ function ConstructionApp() {
     }
   };
 
-  // --- Sub-Admin & Settings Handlers (Phase 8) ---
+  // --- Sub-Admin & Settings Handlers (Phase 8 - Super Admin Only) ---
   const handleOpenAddSubAdmin = () => {
+    if (!isSuperAdmin) {
+      showToast('403 Forbidden: Only Super Admin can manage sub-admin accounts.', 'error', 'Access Denied');
+      return;
+    }
     setEditingSubAdmin(null);
     setIsSubAdminModalOpen(true);
   };
 
   const handleOpenEditSubAdmin = (subAdmin) => {
+    if (!isSuperAdmin) {
+      showToast('403 Forbidden: Only Super Admin can manage sub-admin accounts.', 'error', 'Access Denied');
+      return;
+    }
     setEditingSubAdmin(subAdmin);
     setIsSubAdminModalOpen(true);
   };
 
   const handleOpenDeleteSubAdmin = (subAdmin) => {
+    if (!isSuperAdmin) {
+      showToast('403 Forbidden: Only Super Admin can manage sub-admin accounts.', 'error', 'Access Denied');
+      return;
+    }
     setDeleteTargetSubAdmin(subAdmin);
     setIsDeleteSubAdminModalOpen(true);
   };
 
   const handleSaveSubAdmin = async (formData, userId) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!isSuperAdmin) {
+      showToast('403 Forbidden: Only Super Admin can modify system accounts.', 'error', 'Access Denied');
+      return;
+    }
+
     try {
       if (userId) {
         await updateSubAdmin(userId, formData);
@@ -702,6 +929,15 @@ function ConstructionApp() {
   };
 
   const handleConfirmDeleteSubAdmin = async (userId) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!isSuperAdmin) {
+      showToast('403 Forbidden: Only Super Admin can delete accounts.', 'error', 'Access Denied');
+      return;
+    }
+
     try {
       await deleteSubAdmin(userId);
       showToast('Sub-admin account deleted successfully.', 'info', 'Account Removed');
@@ -714,6 +950,10 @@ function ConstructionApp() {
   };
 
   const handleToggleSubAdminStatus = async (user) => {
+    if (!currentUser || !isSuperAdmin) {
+      showToast('403 Forbidden: Only Super Admin can toggle account status.', 'error', 'Access Denied');
+      return;
+    }
     const newStatus = user.status === 'Active' ? 'Disabled' : 'Active';
     try {
       await updateSubAdmin(user.userId || user.id, { status: newStatus });
@@ -794,10 +1034,54 @@ function ConstructionApp() {
 
   const { title, subtitle } = getPageInfo();
 
+  // 1. Initial Verification Gate - Session & Database Check
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center justify-center text-center p-6 select-none">
+        <div className="w-16 h-16 rounded-2xl bg-[#0F8B78]/10 border border-[#0F8B78]/25 flex items-center justify-center text-[#0F8B78] animate-pulse mb-4 shadow-sm">
+          <HardHat className="w-8 h-8" />
+        </div>
+        <h2 className="text-base font-bold text-[#172B4D]">Kerala Roadways PMS</h2>
+        <p className="text-xs text-[#64748B] mt-1.5 flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0F8B78]" />
+          Verifying security credentials and access permissions...
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Strict Authentication Protection Gate
+  // When not logged in, unconditionally render LoginPage. No internal dashboard, sidebar, or data is mounted in the DOM.
+  if (!currentUser) {
+    return (
+      <>
+        <LoginPage onOpenPasswordReset={() => setIsPasswordResetModalOpen(true)} />
+        <PasswordResetModal
+          isOpen={isPasswordResetModalOpen}
+          onClose={() => setIsPasswordResetModalOpen(false)}
+        />
+        <NotificationToast
+          notification={notification}
+          onDismiss={() => setNotification(null)}
+        />
+        <OfflineIndicator />
+      </>
+    );
+  }
+
   return (
     <Layout
       currentSection={currentSection}
       onSelectSection={(sec) => {
+        // Enforce role-based module navigation
+        if (sec === 'settings' && !isSuperAdmin) {
+          showToast('403 Forbidden: Only Super Admin can access System Settings.', 'error', 'Permission Denied');
+          return;
+        }
+        if (!hasModuleAccess(sec, 'view')) {
+          showToast(`403 Forbidden: Access to ${sec} is restricted for your role.`, 'error', 'Permission Denied');
+          return;
+        }
         setCurrentSection(sec);
         setSelectedProject(null);
       }}

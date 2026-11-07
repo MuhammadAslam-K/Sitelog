@@ -90,7 +90,9 @@ export async function authenticateSystemUser(usernameOrEmail, password) {
   const cleanPass = (password || '').trim();
 
   if (!cleanInput || !cleanPass) {
-    throw new Error('Please enter both username and password.');
+    const err = new Error('Please enter both username and password.');
+    err.status = 400;
+    throw err;
   }
 
   // 1. Check in Firestore collection
@@ -109,18 +111,24 @@ export async function authenticateSystemUser(usernameOrEmail, password) {
 
     if (matchedUser) {
       if (matchedUser.status === 'Disabled') {
-        throw new Error('This account has been disabled. Please contact the Super Admin.');
+        const disabledErr = new Error('This account has been disabled. Please contact the Super Admin.');
+        disabledErr.status = 403;
+        throw disabledErr;
       }
       if (matchedUser.password === cleanPass) {
-        return matchedUser;
+        // Strip sensitive password before returning to application state
+        const { password: _, ...safeUser } = matchedUser;
+        return safeUser;
       }
-      throw new Error('Invalid username or password.');
+      const invalidErr = new Error('Invalid username or password.');
+      invalidErr.status = 401;
+      throw invalidErr;
     }
   } catch (error) {
-    if (error.message.includes('disabled') || error.message.includes('Invalid')) {
+    if (error.status === 403 || error.status === 401) {
       throw error;
     }
-    console.warn('Firestore user fetch failed, checking fallback super admin:', error.message);
+    console.warn('Firestore user fetch notice, verifying against verified admin credentials:', error.message);
   }
 
   // 2. Fallback check for Default Super Admin
@@ -128,10 +136,54 @@ export async function authenticateSystemUser(usernameOrEmail, password) {
   const adminEmail = DEFAULT_SUPER_ADMIN.email.toLowerCase();
 
   if ((cleanInput === adminName || cleanInput === adminEmail) && cleanPass === DEFAULT_SUPER_ADMIN.password) {
-    return DEFAULT_SUPER_ADMIN;
+    const { password: _, ...safeAdmin } = DEFAULT_SUPER_ADMIN;
+    return safeAdmin;
   }
 
-  throw new Error('Invalid username or password.');
+  const unauthorizedErr = new Error('Invalid username or password.');
+  unauthorizedErr.status = 401;
+  throw unauthorizedErr;
+}
+
+/**
+ * Validates an active user session against Firestore to ensure user still exists and is active.
+ * @param {string} userId
+ * @returns {Promise<Object|null>}
+ */
+export async function verifyUserSession(userId) {
+  if (!userId) return null;
+
+  // Super Admin validation
+  if (userId === DEFAULT_SUPER_ADMIN.userId) {
+    try {
+      const adminRef = doc(db, USERS_COLLECTION, DEFAULT_SUPER_ADMIN.userId);
+      const snap = await getDoc(adminRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.status === 'Disabled') return null;
+        const { password: _, ...safeUser } = data;
+        return { id: snap.id, ...safeUser };
+      }
+    } catch {
+      // In offline/initialization fallback
+    }
+    const { password: _, ...safeAdmin } = DEFAULT_SUPER_ADMIN;
+    return safeAdmin;
+  }
+
+  // Sub-admin validation
+  try {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return null;
+    const data = snap.data();
+    if (data.status === 'Disabled') return null;
+    const { password: _, ...safeUser } = data;
+    return { id: snap.id, ...safeUser };
+  } catch (error) {
+    console.warn('Session verification notice:', error.message);
+    return null;
+  }
 }
 
 /**
