@@ -182,7 +182,11 @@ export function EmployeeMusterModal({
                       </td>
 
                       <td className="py-2.5 px-3 text-right font-mono font-bold tabular-nums whitespace-nowrap">
-                        {(item.balance || 0) < 0 ? (
+                        {effectiveStatus === 'Paid' ? (
+                          <span className="text-[#0F8B78] bg-[#0F8B78]/10 px-1.5 py-0.5 rounded text-[11px]">
+                            ₹0 (Paid)
+                          </span>
+                        ) : (item.balance || 0) < 0 ? (
                           <span className="text-[#DC5353]">-{formatIndianCurrency(Math.abs(item.balance))}</span>
                         ) : (
                           <span className="text-[#0F8B78]">{formatIndianCurrency(item.balance || 0)}</span>

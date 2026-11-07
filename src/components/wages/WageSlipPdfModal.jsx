@@ -18,6 +18,7 @@ import {
 import { Modal } from '../common/Modal.jsx';
 import { generateWageSlipPDF, generateConsolidatedWagesPDF } from '../../utils/pdfGenerator.js';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
+import { getWagePayableBalance } from '../../utils/wageCalculator.js';
 
 export function WageSlipPdfModal({
   isOpen,
@@ -174,7 +175,7 @@ export function WageSlipPdfModal({
 
       const w = Number(entry.wages) || 0;
       const adv = Number(entry.advance) || 0;
-      const bal = entry.balance !== undefined ? Number(entry.balance) : (w - adv);
+      const bal = getWagePayableBalance(entry);
 
       totalAmount += w;
       totalAdvance += adv;
@@ -400,7 +401,9 @@ export function WageSlipPdfModal({
                       )}
                       <div>
                         <span className="text-[10px] text-[#64748B] uppercase block font-sans">Bal</span>
-                        <span className="font-bold text-[#0F8B78]">₹{balAmt}</span>
+                        <span className="font-bold text-[#0F8B78]">
+                          {entry.status === 'Paid' ? '₹0 (Paid)' : `₹${balAmt}`}
+                        </span>
                       </div>
                     </div>
                   </label>

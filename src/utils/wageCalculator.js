@@ -120,3 +120,54 @@ export function calculateEmployeeWageReflection(employee, dailyWageEntries = [])
     hasLiveEntries: true
   };
 }
+
+/**
+ * Calculates the true remaining payable balance for a single daily wage entry.
+ * When status is 'Paid', the remaining payable balance is strictly 0.
+ * @param {Object} entry
+ * @returns {number}
+ */
+export function getWagePayableBalance(entry) {
+  if (!entry) return 0;
+  const status = entry.status;
+  if (status === 'Paid') {
+    return 0;
+  }
+  const wages = Number(entry.wages) || 0;
+  const advance = Number(entry.advance) || 0;
+  const isLeave = entry.attendance === 'Absent / On Leave';
+
+  if (isLeave) {
+    return status === 'Paid' ? 0 : -advance;
+  }
+
+  const rawBalance = entry.balance !== undefined ? Number(entry.balance) : (wages - advance);
+  if (!status && rawBalance <= 0 && wages > 0) {
+    return 0;
+  }
+  return rawBalance;
+}
+
+/**
+ * Calculates the total money disbursed/paid out for a single daily wage entry.
+ * When status is 'Paid', the full wage has been paid (advances + final settlement).
+ * When status is 'Partial' or unpaid with advance, only the advance was paid.
+ * @param {Object} entry
+ * @returns {number}
+ */
+export function getWagePaidAmount(entry) {
+  if (!entry) return 0;
+  const wages = Number(entry.wages) || 0;
+  const advance = Number(entry.advance) || 0;
+  const isLeave = entry.attendance === 'Absent / On Leave';
+  const status = entry.status;
+
+  if (isLeave) {
+    return advance;
+  }
+  if (status === 'Paid') {
+    return wages > 0 ? wages : advance;
+  }
+  return advance;
+}
+

@@ -21,6 +21,7 @@ import { WageTable } from './WageTable.jsx';
 import { WageSlipPdfModal } from './WageSlipPdfModal.jsx';
 import { ATTENDANCE_STATUSES, WAGE_PAYMENT_STATUSES } from '../../utils/constants.js';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
+import { getWagePayableBalance, getWagePaidAmount } from '../../utils/wageCalculator.js';
 
 export function DailyWagesList({
   wages = [],
@@ -272,11 +273,28 @@ export function DailyWagesList({
     setIsPdfModalOpen(true);
   };
 
-  // Aggregate metrics
-  const totalWagesEarned = wages.reduce((sum, w) => sum + (Number(w.wages) || 0), 0);
-  const totalAdvancesGiven = wages.reduce((sum, w) => sum + (Number(w.advance) || 0), 0);
-  const netBalancePayable = wages.reduce((sum, w) => sum + (Number(w.balance) || 0), 0);
-  const absentAdvancesCount = wages.filter((w) => w.attendance === 'Absent / On Leave' && w.advance > 0).length;
+  // Check if filters are currently active
+  const isFiltered = Boolean(
+    searchQuery ||
+    selectedEmployeeId !== 'ALL' ||
+    selectedProjectId !== 'ALL' ||
+    selectedAttendance !== 'ALL' ||
+    selectedStatus !== 'ALL' ||
+    fromDate ||
+    toDate
+  );
+
+  // When filters are applied, metrics reflect the active filtered subset; otherwise all muster entries
+  const calculationPool = isFiltered ? processedWages : wages;
+
+  // Aggregate metrics (strictly status-aware so paid amounts deduct from net balance payable)
+  const totalWagesEarned = calculationPool.reduce((sum, w) => sum + (Number(w.wages) || 0), 0);
+  const totalAdvancesGiven = calculationPool.reduce((sum, w) => sum + (Number(w.advance) || 0), 0);
+  const totalPaidAmount = calculationPool.reduce((sum, w) => sum + getWagePaidAmount(w), 0);
+  const netBalancePayable = calculationPool.reduce((sum, w) => sum + getWagePayableBalance(w), 0);
+  const settledCount = calculationPool.filter((w) => w.status === 'Paid').length;
+  const pendingCount = calculationPool.filter((w) => w.status !== 'Paid').length;
+  const absentAdvancesCount = calculationPool.filter((w) => w.attendance === 'Absent / On Leave' && Number(w.advance) > 0).length;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -320,9 +338,18 @@ export function DailyWagesList({
       {/* KPI Overview Chips */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Muster Entries</p>
-          <p className="text-xl sm:text-2xl font-black text-[#172B4D] mt-0.5">{wages.length}</p>
-          <span className="text-[10px] text-[#0F8B78] font-semibold">Total logged work shifts</span>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Muster Entries</p>
+            {isFiltered && (
+              <span className="text-[9px] font-bold text-[#0F8B78] bg-[#0F8B78]/10 px-1.5 py-0.5 rounded">
+                Filtered ({calculationPool.length}/{wages.length})
+              </span>
+            )}
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-[#172B4D] mt-0.5">{calculationPool.length}</p>
+          <span className="text-[10px] text-[#0F8B78] font-semibold">
+            {settledCount > 0 ? `${settledCount} Paid • ${pendingCount} Pending` : 'Total logged work shifts'}
+          </span>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">
@@ -330,15 +357,17 @@ export function DailyWagesList({
           <p className="text-xl sm:text-2xl font-black text-[#172B4D] font-mono tabular-nums mt-0.5">
             {formatIndianCurrency(totalWagesEarned)}
           </p>
-          <span className="text-[10px] text-[#64748B] font-semibold">Work earned liability</span>
+          <span className="text-[10px] text-[#64748B] font-semibold">Gross work liability</span>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">
-          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Site Advances Paid</p>
+          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Total Wages & Advances Paid</p>
           <p className="text-xl sm:text-2xl font-black text-amber-700 font-mono tabular-nums mt-0.5">
-            {formatIndianCurrency(totalAdvancesGiven)}
+            {formatIndianCurrency(totalPaidAmount)}
           </p>
-          <span className="text-[10px] text-amber-700 font-semibold">{absentAdvancesCount} given on leave days</span>
+          <span className="text-[10px] text-amber-700 font-semibold" title={`Includes ${formatIndianCurrency(totalAdvancesGiven)} site advances + settled wage disbursements`}>
+            {formatIndianCurrency(totalAdvancesGiven)} advances • {settledCount} settled
+          </span>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">
@@ -346,9 +375,12 @@ export function DailyWagesList({
           <p className="text-xl sm:text-2xl font-black text-[#0F8B78] font-mono tabular-nums mt-0.5">
             {formatIndianCurrency(netBalancePayable)}
           </p>
-          <span className="text-[10px] text-[#0F8B78] font-semibold">Earned minus Advances</span>
+          <span className="text-[10px] text-[#0F8B78] font-semibold">
+            Remaining unpaid balance ({pendingCount} pending)
+          </span>
         </div>
       </div>
+
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-4">

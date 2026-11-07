@@ -71,7 +71,8 @@ export function generateWageSlipPDF(employeeName, entries = [], meta = {}) {
 
     const w = Number(entry.wages) || 0;
     const adv = Number(entry.advance) || 0;
-    const bal = entry.balance !== undefined ? Number(entry.balance) : (w - adv);
+    const isPaid = entry.status === 'Paid';
+    const bal = isPaid ? 0 : (entry.balance !== undefined ? Number(entry.balance) : (w - adv));
 
     totalWages += w;
     totalAdvance += adv;
@@ -109,7 +110,8 @@ export function generateWageSlipPDF(employeeName, entries = [], meta = {}) {
     const wtText = item.attendance || 'Present';
     const wagesStr = item.wages !== undefined && Number(item.wages) > 0 ? String(item.wages) : (item.attendance === 'Absent / On Leave' ? '0' : String(item.wages || 0));
     const advStr = item.advance !== undefined && Number(item.advance) > 0 ? String(item.advance) : '';
-    const balStr = item.balance !== undefined ? String(item.balance) : String((Number(item.wages) || 0) - (Number(item.advance) || 0));
+    const isItemPaid = item.status === 'Paid';
+    const balStr = isItemPaid ? '0 (Paid)' : (item.balance !== undefined ? String(item.balance) : String((Number(item.wages) || 0) - (Number(item.advance) || 0)));
 
     tableBody.push([dateStr, wtText, wagesStr, advStr, balStr]);
   });
@@ -269,7 +271,8 @@ export function generateConsolidatedWagesPDF(wages = [], filterTitle = 'Daily Wa
   const rows = wages.map((w) => {
     const earned = Number(w.wages) || 0;
     const adv = Number(w.advance) || 0;
-    const bal = w.balance !== undefined ? Number(w.balance) : (earned - adv);
+    const isRowPaid = w.status === 'Paid';
+    const bal = isRowPaid ? 0 : (w.balance !== undefined ? Number(w.balance) : (earned - adv));
 
     totalWages += earned;
     totalAdvance += adv;
@@ -283,7 +286,7 @@ export function generateConsolidatedWagesPDF(wages = [], filterTitle = 'Daily Wa
       w.attendance || 'Present',
       `₹${earned}`,
       `₹${adv}`,
-      `₹${bal}`,
+      isRowPaid ? '₹0 (Paid)' : `₹${bal}`,
       w.status || 'Pending'
     ];
   });

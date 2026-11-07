@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
+import { getWagePayableBalance, getWagePaidAmount } from '../../utils/wageCalculator.js';
 
 export function WageTable({
   wages = [],
@@ -65,10 +66,12 @@ export function WageTable({
     let totalW = 0;
     let totalAdv = 0;
     let totalBal = 0;
+    let totalPaid = 0;
     chosen.forEach((c) => {
       totalW += Number(c.wages) || 0;
       totalAdv += Number(c.advance) || 0;
-      totalBal += c.balance !== undefined ? Number(c.balance) : ((Number(c.wages) || 0) - (Number(c.advance) || 0));
+      totalBal += getWagePayableBalance(c);
+      totalPaid += getWagePaidAmount(c);
     });
 
     return {
@@ -78,6 +81,7 @@ export function WageTable({
       totalW,
       totalAdv,
       totalBal,
+      totalPaid,
       entries: chosen
     };
   }, [selectedWageIds, allWages, wages]);
@@ -135,7 +139,7 @@ export function WageTable({
                     {selectedInfo.count} Particular Date{selectedInfo.count > 1 ? 's' : ''} Selected for {selectedInfo.singleEmployee}
                   </p>
                   <p className="text-slate-300 text-[11px] font-mono tabular-nums">
-                    Total Wages: ₹{selectedInfo.totalW} | Adv: ₹{selectedInfo.totalAdv} | Balance: ₹{selectedInfo.totalBal}
+                    Total Wages: ₹{selectedInfo.totalW} | Paid: ₹{selectedInfo.totalPaid} | Pending Balance: ₹{selectedInfo.totalBal}
                   </p>
                 </>
               ) : (
@@ -350,7 +354,16 @@ export function WageTable({
 
                     {/* Balance Amount (₹) */}
                     <td className="py-3.5 px-3.5 text-right font-mono tabular-nums font-bold whitespace-nowrap">
-                      {isNegativeBalance ? (
+                      {effectiveStatus === 'Paid' ? (
+                        <span 
+                          className="inline-flex items-center gap-1 text-[#0F8B78] bg-[#0F8B78]/10 px-2 py-0.5 rounded border border-[#0F8B78]/25"
+                          title={`Wage settled in full (Gross ${formatIndianCurrency(item.wages || 0)})`}
+                        >
+                          <CheckCircle className="w-3 h-3 text-[#0F8B78]" />
+                          <span>₹0</span>
+                          <span className="text-[10px] font-normal text-[#0F8B78]">(Paid)</span>
+                        </span>
+                      ) : isNegativeBalance ? (
                         <span 
                           className="text-[#DC5353] bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
                           title="Worker was absent but granted advance cash"
@@ -482,10 +495,10 @@ export function WageTable({
               Total Earned: <strong className="text-[#172B4D]">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.wages) || 0), 0))}</strong>
             </span>
             <span>
-              Total Advance: <strong className="text-amber-700">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.advance) || 0), 0))}</strong>
+              Total Paid: <strong className="text-amber-700">{formatIndianCurrency(wages.reduce((s, w) => s + getWagePaidAmount(w), 0))}</strong>
             </span>
             <span>
-              Net Balance: <strong className="text-[#0F8B78]">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.balance) || 0), 0))}</strong>
+              Net Balance: <strong className="text-[#0F8B78]">{formatIndianCurrency(wages.reduce((s, w) => s + getWagePayableBalance(w), 0))}</strong>
             </span>
           </div>
         </div>
