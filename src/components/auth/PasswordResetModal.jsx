@@ -97,16 +97,16 @@ export function PasswordResetModal({ isOpen, onClose }) {
       <div className="space-y-4">
         {/* Error notification */}
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-[#DC5353] text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-[#DC5353] shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Success notification */}
         {successMessage && (
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="p-3 rounded-xl bg-[#0F8B78]/10 border border-[#0F8B78]/25 text-[#0F8B78] text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#0F8B78] shrink-0" />
             <span>{successMessage}</span>
           </div>
         )}
@@ -114,26 +114,26 @@ export function PasswordResetModal({ isOpen, onClose }) {
         {!verifiedUser ? (
           /* STEP 1: Email Verification */
           <form onSubmit={handleVerifyEmail} className="space-y-4">
-            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 text-xs leading-relaxed">
-              <p className="font-bold flex items-center gap-1.5 mb-1">
-                <ShieldCheck className="w-4 h-4 text-blue-600" />
+            <div className="p-3 rounded-xl bg-slate-50 border border-[#E2E8F0] text-[#172B4D] text-xs leading-relaxed">
+              <p className="font-bold flex items-center gap-1.5 mb-1 text-[#172B4D]">
+                <ShieldCheck className="w-4 h-4 text-[#0F8B78]" />
                 Security Verification Required
               </p>
               To reset your password, please provide your registered email address. For Super Admin Muhammad Aslam, enter <strong>aslamka.2k3@gmail.com</strong>.
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Registered Email Address <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
+                Registered Email Address <span className="text-[#DC5353]">*</span>
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
                 <input
                   type="email"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="aslamka.2k3@gmail.com"
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                   required
                 />
               </div>
@@ -143,17 +143,17 @@ export function PasswordResetModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => setEmailInput('aslamka.2k3@gmail.com')}
-                className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold underline"
+                className="text-[11px] text-[#0F8B78] hover:text-[#0d7867] font-semibold underline"
               >
                 Use aslamka.2k3@gmail.com
               </button>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={handleBackToLogin}
-                className="text-xs font-bold text-slate-600 hover:text-slate-800"
+                className="text-xs font-bold text-[#64748B] hover:text-[#172B4D]"
               >
                 Back to Login
               </button>
@@ -161,7 +161,7 @@ export function PasswordResetModal({ isOpen, onClose }) {
               <button
                 type="submit"
                 disabled={isVerifying}
-                className="py-2 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5"
+                className="py-2 px-4 bg-[#0F8B78] hover:bg-[#0d7867] disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-2xs flex items-center gap-1.5"
               >
                 <span>{isVerifying ? 'Verifying Email...' : 'Verify Email ID'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -171,35 +171,35 @@ export function PasswordResetModal({ isOpen, onClose }) {
         ) : (
           /* STEP 2: Enter New Password */
           <form onSubmit={handleUpdatePassword} className="space-y-4">
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
+            <div className="p-3 rounded-xl bg-[#0F8B78]/10 border border-[#0F8B78]/25 text-[#0F8B78] text-xs">
               <div className="flex items-center gap-2 mb-1">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                <CheckCircle2 className="w-4 h-4 text-[#0F8B78]" />
                 <span className="font-bold">Identity Verified Successfully</span>
               </div>
-              <p className="text-emerald-800">
+              <p className="text-[#172B4D]">
                 User: <strong>{verifiedUser.name}</strong> ({verifiedUser.role})<br />
                 Email: <span className="font-mono">{verifiedUser.email}</span>
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                New Password <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
+                New Password <span className="text-[#DC5353]">*</span>
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="w-full pl-9 pr-10 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full pl-9 pr-10 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#172B4D] p-1"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -207,27 +207,27 @@ export function PasswordResetModal({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Confirm New Password <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
+                Confirm New Password <span className="text-[#DC5353]">*</span>
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter new password"
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                   required
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setVerifiedUser(null)}
-                className="text-xs font-bold text-slate-600 hover:text-slate-800"
+                className="text-xs font-bold text-[#64748B] hover:text-[#172B4D]"
               >
                 Change Email
               </button>
@@ -235,7 +235,7 @@ export function PasswordResetModal({ isOpen, onClose }) {
               <button
                 type="submit"
                 disabled={isUpdating}
-                className="py-2 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5"
+                className="py-2 px-4 bg-[#0F8B78] hover:bg-[#0d7867] disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-2xs flex items-center gap-1.5"
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 <span>{isUpdating ? 'Saving Password...' : 'Save New Password'}</span>

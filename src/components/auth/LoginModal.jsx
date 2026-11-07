@@ -60,17 +60,17 @@ export function LoginModal({ isOpen, onClose }) {
     >
       <div className="space-y-5">
         {/* Brand Banner */}
-        <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-emerald-950 to-slate-900 text-white">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-emerald-500 flex items-center justify-center mx-auto mb-2 text-slate-950 shadow-md">
-            <HardHat className="w-7 h-7 text-slate-950" />
+        <div className="text-center p-4 rounded-2xl bg-[#172B4D] text-white border border-[#213963]">
+          <div className="w-12 h-12 rounded-xl bg-[#0F8B78] flex items-center justify-center mx-auto mb-2 text-white shadow-md">
+            <HardHat className="w-7 h-7 text-white" />
           </div>
           <h3 className="text-base font-extrabold tracking-tight text-white">{COMPANY_NAME}</h3>
-          <p className="text-[11px] text-emerald-300 font-medium">Kerala Roadways Infrastructure PMS</p>
+          <p className="text-[11px] text-teal-200 font-medium">Kerala Roadways Infrastructure PMS</p>
         </div>
 
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-[#DC5353] text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-[#DC5353] shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -78,17 +78,17 @@ export function LoginModal({ isOpen, onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
               Username or Registered Email
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g. Muhammad Aslam"
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                 required
               />
             </div>
@@ -97,31 +97,31 @@ export function LoginModal({ isOpen, onClose }) {
           {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-[#172B4D]">
                 Password
               </label>
               <button
                 type="button"
                 onClick={handleOpenReset}
-                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 underline"
+                className="text-[11px] font-bold text-[#0F8B78] hover:text-[#0d7867] underline"
               >
                 Reset Password?
               </button>
             </div>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full pl-9 pr-10 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-9 pr-10 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#172B4D] p-1"
                 aria-label="Toggle password visibility"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -130,15 +130,15 @@ export function LoginModal({ isOpen, onClose }) {
           </div>
 
           {/* Quick autofill helper */}
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-slate-600 text-[11px]">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Super Admin: <strong>Muhammad Aslam</strong></span>
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-[#E2E8F0] text-xs flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[#64748B] text-[11px]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0F8B78]" />
+              <span>Super Admin: <strong className="text-[#172B4D]">Muhammad Aslam</strong></span>
             </div>
             <button
               type="button"
               onClick={handleFillSuperAdmin}
-              className="text-[10px] font-bold text-emerald-800 hover:text-emerald-950 bg-white px-2 py-0.5 rounded border border-slate-200"
+              className="text-[10px] font-bold text-[#0F8B78] hover:text-[#0d7867] bg-white px-2 py-0.5 rounded border border-[#E2E8F0]"
             >
               Fill Credentials
             </button>
@@ -148,7 +148,7 @@ export function LoginModal({ isOpen, onClose }) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center justify-center gap-2"
+            className="w-full py-2.5 px-4 bg-[#0F8B78] hover:bg-[#0d7867] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2"
           >
             <LogIn className="w-4 h-4" />
             <span>{isLoading ? 'Authenticating...' : 'Sign In as System User'}</span>
@@ -156,7 +156,7 @@ export function LoginModal({ isOpen, onClose }) {
         </form>
 
         {/* Alternative Google Sign-in */}
-        <div className="pt-3 border-t border-slate-200 text-center">
+        <div className="pt-3 border-t border-[#E2E8F0] text-center">
           <button
             type="button"
             onClick={async () => {
@@ -167,7 +167,7 @@ export function LoginModal({ isOpen, onClose }) {
                 setErrorMessage(e.message || 'Google sign in failed');
               }
             }}
-            className="w-full py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2"
+            className="w-full py-2 px-3 bg-white hover:bg-slate-50 border border-[#E2E8F0] text-[#172B4D] font-bold text-xs rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2"
           >
             <span>Or Continue with Google</span>
           </button>

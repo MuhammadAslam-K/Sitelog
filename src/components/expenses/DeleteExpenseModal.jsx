@@ -34,31 +34,31 @@ export function DeleteExpenseModal({
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
-        <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-850">
-          <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-[#DC5353]">
+          <AlertTriangle className="w-5 h-5 text-[#DC5353] shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
-            <p className="font-bold text-rose-900">Are you sure you want to delete this expense record?</p>
-            <p className="text-rose-700">
+            <p className="font-bold text-[#172B4D]">Are you sure you want to delete this expense record?</p>
+            <p className="text-[#64748B]">
               This action cannot be undone. The project's overall expense metrics will automatically adjust.
             </p>
           </div>
         </div>
 
         {/* Expense Detail Summary */}
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs space-y-2">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-            <span className="text-slate-500 font-mono font-bold">{expenseEntry.expenseId}</span>
-            <span className="font-semibold text-slate-800 capitalize bg-white px-2 py-0.5 rounded border border-slate-200">
+        <div className="bg-slate-50 rounded-xl p-4 border border-[#E2E8F0] text-xs space-y-2">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
+            <span className="text-[#0F8B78] font-mono font-bold">{expenseEntry.expenseId}</span>
+            <span className="font-semibold text-[#172B4D] capitalize bg-white px-2 py-0.5 rounded border border-[#E2E8F0]">
               {expenseEntry.category}
             </span>
           </div>
 
           <div className="pt-1">
-            <div className="text-xs text-slate-500">Item Description:</div>
-            <div className="text-sm font-bold text-slate-900">{expenseEntry.item}</div>
+            <div className="text-xs text-[#64748B]">Item Description:</div>
+            <div className="text-sm font-bold text-[#172B4D]">{expenseEntry.item}</div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-600">
+          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-[#64748B]">
             <div>
               <span className="text-slate-400">Date:</span> {expenseEntry.date}
             </div>
@@ -77,9 +77,9 @@ export function DeleteExpenseModal({
             )}
           </div>
 
-          <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
-            <span className="text-slate-600 font-semibold">Amount to Remove:</span>
-            <span className="text-base font-extrabold text-rose-600 font-mono">
+          <div className="pt-2 border-t border-[#E2E8F0] flex justify-between items-center">
+            <span className="text-[#172B4D] font-semibold">Amount to Remove:</span>
+            <span className="text-base font-extrabold text-[#DC5353] font-mono tabular-nums">
               {formatIndianCurrency(Number(expenseEntry.amount) || 0)}
             </span>
           </div>
@@ -91,7 +91,7 @@ export function DeleteExpenseModal({
             type="button"
             onClick={onClose}
             disabled={isDeleting}
-            className="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-xs sm:text-sm font-semibold text-[#172B4D] hover:bg-slate-50 border border-[#E2E8F0] rounded-xl transition-colors bg-white"
           >
             Cancel
           </button>
@@ -99,7 +99,7 @@ export function DeleteExpenseModal({
             type="button"
             onClick={handleConfirm}
             disabled={isDeleting}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors shadow-xs disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold text-white bg-[#DC5353] hover:bg-[#c94040] rounded-xl transition-colors shadow-2xs disabled:opacity-50"
           >
             <Trash2 className="w-4 h-4" />
             {isDeleting ? 'Deleting...' : 'Delete Expense'}

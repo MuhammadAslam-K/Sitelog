@@ -815,14 +815,14 @@ function ConstructionApp() {
       {/* Loading state on first connect */}
       {isLoadingProjects && isLoadingEmployees && isLoadingWages && isLoadingExpenses && isLoadingMaterials ? (
         <div className="py-24 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-800 animate-pulse mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#0F8B78]/10 border border-[#0F8B78]/20 flex items-center justify-center text-[#0F8B78] animate-pulse mb-4 shadow-2xs">
             <HardHat className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-slate-800">
+          <h3 className="text-base font-bold text-[#172B4D]">
             Connecting to Live Firestore Database...
           </h3>
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+          <p className="text-xs text-[#64748B] mt-1 flex items-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0F8B78]" />
             Synchronizing Kerala Roadways records
           </p>
         </div>
@@ -859,8 +859,6 @@ function ConstructionApp() {
           onNavigateToExpenses={() => setCurrentSection('expenses')}
           onNavigateToMaterials={() => setCurrentSection('materials')}
           onNavigateToSettings={() => setCurrentSection('settings')}
-          onSeedSampleData={handleSeedKeralaProjects}
-          isSeeding={isSeedingProjects}
         />
       ) : currentSection === 'projects' ? (
         /* Projects Page */
@@ -883,8 +881,6 @@ function ConstructionApp() {
           onArchiveEmployee={canEditModule('employees') ? handleOpenArchiveEmployeeModal : null}
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
-          onSeedEmployees={canEditModule('employees') ? handleSeedEmployees : null}
-          isSeeding={isSeedingEmployees}
         />
       ) : currentSection === 'wages' ? (
         /* Daily Wages Page (Active Module) */
@@ -898,8 +894,6 @@ function ConstructionApp() {
           onSettleWage={canEditModule('wages') ? handleSettleWage : null}
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
-          onSeedWages={canEditModule('wages') ? handleSeedDailyWages : null}
-          isSeeding={isSeedingWages}
         />
       ) : currentSection === 'expenses' ? (
         /* Daily Expenses Page (Phase 3 Active Module) */
@@ -911,8 +905,6 @@ function ConstructionApp() {
           onDeleteExpense={canEditModule('expenses') ? handleOpenDeleteExpenseModal : null}
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
-          onSeedExpenses={canEditModule('expenses') ? handleSeedDailyExpenses : null}
-          isSeeding={isSeedingExpenses}
         />
       ) : currentSection === 'materials' ? (
         /* Daily Materials Page (Phase 5 Active Module) */
@@ -923,7 +915,6 @@ function ConstructionApp() {
           onAddNewMaterial={canEditModule('materials') ? handleOpenAddMaterialModal : null}
           onEditMaterial={canEditModule('materials') ? handleOpenEditMaterialModal : null}
           onDeleteMaterial={canEditModule('materials') ? handleOpenDeleteMaterialModal : null}
-          onSeedMaterials={canEditModule('materials') ? handleSeedMaterials : null}
         />
       ) : currentSection === 'settings' ? (
         /* Settings & RBAC Access Control (Phase 8 Active Module) */

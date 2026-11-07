@@ -134,48 +134,48 @@ export function UpcomingModule({ moduleId, onNavigateToProjects }) {
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6">
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-8 sm:p-10 text-center relative overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs p-8 sm:p-10 text-center relative overflow-hidden">
         {/* Decorative corner banner */}
-        <div className="absolute top-0 right-0 bg-emerald-700 text-white text-xs font-bold px-5 py-1.5 rounded-bl-xl uppercase tracking-wider shadow-xs">
+        <div className="absolute top-0 right-0 bg-[#0F8B78] text-white text-xs font-bold px-5 py-1.5 rounded-bl-xl uppercase tracking-wider shadow-2xs">
           Planned for {details.phase}
         </div>
 
         {/* Icon */}
-        <div className="w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-150 mx-auto flex items-center justify-center mb-6 shadow-xs">
+        <div className="w-20 h-20 rounded-2xl bg-[#0F8B78]/10 text-[#0F8B78] border border-[#0F8B78]/25 mx-auto flex items-center justify-center mb-6 shadow-2xs">
           <Icon className="w-10 h-10" />
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#172B4D] tracking-tight mb-3">
           {details.title}
         </h2>
 
         {/* Description */}
-        <p className="text-slate-600 max-w-2xl mx-auto text-base leading-relaxed mb-8">
+        <p className="text-[#64748B] max-w-2xl mx-auto text-base leading-relaxed mb-8">
           {details.description}
         </p>
 
         {/* Architecture Notice */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-8 text-left max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <div className="bg-slate-50 border border-[#E2E8F0] rounded-xl p-5 mb-8 text-left max-w-2xl mx-auto">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#172B4D] uppercase tracking-wider mb-3">
+            <ShieldCheck className="w-4 h-4 text-[#0F8B78]" />
             Phase 1 Database Compatibility
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            All records in this module will link automatically via the primary <strong className="text-slate-800 font-mono">Project ID</strong> (e.g. <span className="font-mono text-emerald-800 bg-emerald-100/70 px-1.5 py-0.5 rounded">PRJ-101</span>) configured in the Phase 1 Projects schema.
+          <p className="text-xs text-[#64748B] leading-relaxed">
+            All records in this module will link automatically via the primary <strong className="text-[#172B4D] font-mono">Project ID</strong> (e.g. <span className="font-mono text-[#0F8B78] bg-[#0F8B78]/10 px-1.5 py-0.5 rounded border border-[#0F8B78]/20">PRJ-101</span>) configured in the Phase 1 Projects schema.
           </p>
         </div>
 
         {/* Planned Features */}
         {details.keyFeatures.length > 0 && (
           <div className="max-w-2xl mx-auto text-left mb-8">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+            <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-wider mb-3">
               Key Features Planned in {details.phase}:
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {details.keyFeatures.map((feat, idx) => (
-                <div key={idx} className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-slate-150 text-xs text-slate-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5 shrink-0"></span>
+                <div key={idx} className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-[#E2E8F0] text-xs text-[#172B4D]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0F8B78] mt-1.5 shrink-0"></span>
                   <span>{feat}</span>
                 </div>
               ))}
@@ -187,7 +187,7 @@ export function UpcomingModule({ moduleId, onNavigateToProjects }) {
         <div className="flex justify-center pt-2">
           <button
             onClick={onNavigateToProjects}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-sm transition-all shadow-sm hover:shadow"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0F8B78] hover:bg-[#0d7867] text-white font-semibold text-sm transition-all shadow-2xs hover:shadow"
           >
             <FolderKanban className="w-4 h-4" />
             Manage Active Projects (Phase 1)

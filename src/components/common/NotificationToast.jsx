@@ -8,16 +8,16 @@ export function NotificationToast({ notification, onDismiss }) {
 
   const typeConfig = {
     success: {
-      bg: 'bg-emerald-900 text-white border-emerald-700',
-      icon: <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
+      bg: 'bg-[#0F8B78] text-white border-[#0d7867]',
+      icon: <CheckCircle2 className="w-5 h-5 text-teal-100 shrink-0" />
     },
     error: {
-      bg: 'bg-rose-900 text-white border-rose-700',
-      icon: <AlertCircle className="w-5 h-5 text-rose-300 shrink-0" />
+      bg: 'bg-[#DC5353] text-white border-red-700',
+      icon: <AlertCircle className="w-5 h-5 text-rose-100 shrink-0" />
     },
     info: {
-      bg: 'bg-slate-900 text-white border-slate-700',
-      icon: <Info className="w-5 h-5 text-cyan-300 shrink-0" />
+      bg: 'bg-[#172B4D] text-white border-[#213963]',
+      icon: <Info className="w-5 h-5 text-teal-300 shrink-0" />
     }
   };
 

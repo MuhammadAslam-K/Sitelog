@@ -137,8 +137,8 @@ export function SubAdminFormModal({
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {validationErrors.submit && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-[#DC5353] text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-[#DC5353] shrink-0" />
             <span>{validationErrors.submit}</span>
           </div>
         )}
@@ -146,114 +146,114 @@ export function SubAdminFormModal({
         {/* Profile Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              Full Legal Name <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
+              Full Legal Name <span className="text-[#DC5353]">*</span>
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="text"
                 placeholder="e.g. Rahul K. Nair"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                 required
               />
             </div>
             {validationErrors.name && (
-              <p className="text-[11px] text-rose-600 mt-1">{validationErrors.name}</p>
+              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.name}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              Username for Login <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
+              Username for Login <span className="text-[#DC5353]">*</span>
             </label>
             <div className="relative">
-              <Shield className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Shield className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="text"
                 placeholder="e.g. rahul.site"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 disabled={isEditMode}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:bg-slate-100 disabled:text-slate-500"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20 disabled:bg-slate-100 disabled:text-slate-500"
                 required
               />
             </div>
             {validationErrors.username && (
-              <p className="text-[11px] text-rose-600 mt-1">{validationErrors.username}</p>
+              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.username}</p>
             )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              Registered Email (for Password Reset) <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
+              Registered Email (for Password Reset) <span className="text-[#DC5353]">*</span>
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="email"
                 placeholder="e.g. rahul@keralaroadways.in"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                 required
               />
             </div>
             {validationErrors.email && (
-              <p className="text-[11px] text-rose-600 mt-1">{validationErrors.email}</p>
+              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.email}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
               {isEditMode ? 'Change Password (leave empty to keep current)' : 'Account Password *'}
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="password"
                 placeholder={isEditMode ? '••••••••' : 'Min 4 characters'}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                 required={!isEditMode}
               />
             </div>
             {validationErrors.password && (
-              <p className="text-[11px] text-rose-600 mt-1">{validationErrors.password}</p>
+              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.password}</p>
             )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
               Designation / Role Title
             </label>
             <div className="relative">
-              <Briefcase className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Briefcase className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="text"
                 placeholder="e.g. Site Supervisor, Field Engineer, Auditor"
                 value={formData.designation}
                 onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
               Account Status
             </label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:outline-none focus:border-[#0F8B78] focus:ring-2 focus:ring-[#0F8B78]/20"
             >
               <option value="Active">Active (Can Log In)</option>
               <option value="Disabled">Disabled (Access Revoked)</option>
@@ -262,14 +262,14 @@ export function SubAdminFormModal({
         </div>
 
         {/* Granular Module Access Control Matrix */}
-        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+        <div className="p-4 rounded-xl bg-slate-50 border border-[#E2E8F0] space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h4 className="text-xs font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-emerald-700" />
+              <h4 className="text-xs font-extrabold text-[#172B4D] tracking-tight flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-[#0F8B78]" />
                 <span>Module Permissions & Access Matrix</span>
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-[#64748B]">
                 Configure whether this sub-admin can View, View & Edit, or has No Access to each module.
               </p>
             </div>
@@ -278,28 +278,28 @@ export function SubAdminFormModal({
               <button
                 type="button"
                 onClick={() => setAllPermissions('view')}
-                className="text-[10px] font-bold px-2 py-1 rounded bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors"
+                className="text-[10px] font-bold px-2 py-1 rounded bg-[#F4B740]/15 text-[#b27918] hover:bg-[#F4B740]/25 transition-colors border border-[#F4B740]/30"
               >
                 All View
               </button>
               <button
                 type="button"
                 onClick={() => setAllPermissions('edit')}
-                className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors"
+                className="text-[10px] font-bold px-2 py-1 rounded bg-[#0F8B78]/10 text-[#0F8B78] hover:bg-[#0F8B78]/20 transition-colors border border-[#0F8B78]/25"
               >
                 All Edit
               </button>
               <button
                 type="button"
                 onClick={() => setAllPermissions('none')}
-                className="text-[10px] font-bold px-2 py-1 rounded bg-rose-100 text-rose-800 hover:bg-rose-200 transition-colors"
+                className="text-[10px] font-bold px-2 py-1 rounded bg-rose-50 text-[#DC5353] hover:bg-rose-100 transition-colors border border-rose-200"
               >
                 All None
               </button>
             </div>
           </div>
 
-          <div className="divide-y divide-slate-200 bg-white rounded-xl border border-slate-200 overflow-hidden text-xs">
+          <div className="divide-y divide-[#E2E8F0] bg-white rounded-xl border border-[#E2E8F0] overflow-hidden text-xs">
             {SYSTEM_MODULES.map((module) => {
               const currentLevel = formData.permissions[module.id] || 'none';
 
@@ -309,10 +309,10 @@ export function SubAdminFormModal({
                   className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/70 transition-colors"
                 >
                   <div className="min-w-0">
-                    <span className="font-bold text-slate-900 block truncate">
+                    <span className="font-bold text-[#172B4D] block truncate">
                       {module.label}
                     </span>
-                    <span className="text-[10px] text-slate-500 truncate block">
+                    <span className="text-[10px] text-[#64748B] truncate block">
                       {module.description}
                     </span>
                   </div>
@@ -323,11 +323,11 @@ export function SubAdminFormModal({
                       const isSelected = currentLevel === lvl.id;
                       let activeStyle = '';
                       if (isSelected) {
-                        if (lvl.id === 'none') activeStyle = 'bg-rose-600 text-white font-bold shadow-xs';
-                        else if (lvl.id === 'view') activeStyle = 'bg-amber-500 text-slate-950 font-bold shadow-xs';
-                        else if (lvl.id === 'edit') activeStyle = 'bg-emerald-700 text-white font-bold shadow-xs';
+                        if (lvl.id === 'none') activeStyle = 'bg-[#DC5353] text-white font-bold shadow-2xs';
+                        else if (lvl.id === 'view') activeStyle = 'bg-[#F4B740] text-slate-950 font-bold shadow-2xs';
+                        else if (lvl.id === 'edit') activeStyle = 'bg-[#0F8B78] text-white font-bold shadow-2xs';
                       } else {
-                        activeStyle = 'text-slate-600 hover:text-slate-900';
+                        activeStyle = 'text-[#64748B] hover:text-[#172B4D]';
                       }
 
                       return (
@@ -349,12 +349,12 @@ export function SubAdminFormModal({
         </div>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+        <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            className="px-4 py-2 text-xs font-bold text-[#172B4D] hover:bg-slate-100 border border-[#E2E8F0] rounded-xl transition-colors"
           >
             Cancel
           </button>
@@ -362,7 +362,7 @@ export function SubAdminFormModal({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 rounded-xl transition-colors shadow-xs flex items-center gap-2"
+            className="px-5 py-2 text-xs font-bold text-white bg-[#0F8B78] hover:bg-[#0d7867] disabled:opacity-50 rounded-xl transition-colors shadow-2xs flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             <span>{isSubmitting ? 'Saving...' : isEditMode ? 'Update Sub-Admin' : 'Create Sub-Admin'}</span>

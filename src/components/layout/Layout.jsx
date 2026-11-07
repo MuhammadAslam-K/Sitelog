@@ -14,7 +14,7 @@ export function Layout({
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row antialiased font-sans">
+    <div className="min-h-screen bg-[#F5F7FA] text-[#172B4D] flex flex-col lg:flex-row antialiased font-sans">
       {/* Sidebar */}
       <Sidebar
         currentSection={currentSection}

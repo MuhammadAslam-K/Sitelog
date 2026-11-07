@@ -138,13 +138,17 @@ export function DailyWageFormModal({
 
     if (newStatus === 'Present') {
       newWages = String(baseRate);
-      suggestedStatus = parseFloat(formData.advance) > 0 ? 'Partial' : 'Pending';
+      const adv = parseFloat(formData.advance) || 0;
+      suggestedStatus = adv >= baseRate ? 'Paid' : adv > 0 ? 'Partial' : 'Pending';
     } else if (newStatus === 'Half Day') {
-      newWages = String(Math.round(baseRate / 2));
-      suggestedStatus = parseFloat(formData.advance) > 0 ? 'Partial' : 'Pending';
+      const halfRate = Math.round(baseRate / 2);
+      newWages = String(halfRate);
+      const adv = parseFloat(formData.advance) || 0;
+      suggestedStatus = adv >= halfRate ? 'Paid' : adv > 0 ? 'Partial' : 'Pending';
     } else if (newStatus === 'Absent / On Leave') {
-      newWages = '0'; // 0 earned wages on leave
-      suggestedStatus = parseFloat(formData.advance) > 0 ? 'Advance on Leave' : 'Pending';
+      newWages = '0';
+      const adv = parseFloat(formData.advance) || 0;
+      suggestedStatus = adv > 0 ? 'Advance on Leave' : 'Pending';
     }
 
     setFormData((prev) => ({
@@ -155,48 +159,49 @@ export function DailyWageFormModal({
     }));
   };
 
-  // Live Balance calculation: wages - advance
-  const currentWages = formData.attendance === 'Absent / On Leave' ? 0 : (parseFloat(formData.wages) || 0);
-  const currentAdvance = parseFloat(formData.advance) || 0;
-  const currentBalance = Math.round((currentWages - currentAdvance) * 100) / 100;
-
+  // When advance amount changes
   const handleAdvanceChange = (val) => {
     const adv = parseFloat(val) || 0;
-    let newStatus = formData.status;
+    const wage = parseFloat(formData.wages) || 0;
+    let suggestedStatus = formData.status;
 
     if (formData.attendance === 'Absent / On Leave') {
-      newStatus = adv > 0 ? 'Advance on Leave' : 'Pending';
-    } else if (adv >= currentWages && currentWages > 0) {
-      newStatus = 'Paid';
-    } else if (adv > 0) {
-      newStatus = 'Partial';
+      suggestedStatus = adv > 0 ? 'Advance on Leave' : 'Pending';
     } else {
-      newStatus = 'Pending';
+      if (adv >= wage && wage > 0) {
+        suggestedStatus = 'Paid';
+      } else if (adv > 0) {
+        suggestedStatus = 'Partial';
+      } else {
+        suggestedStatus = 'Pending';
+      }
     }
 
     setFormData((prev) => ({
       ...prev,
       advance: val,
-      status: newStatus
+      status: suggestedStatus
     }));
   };
 
+  // Auto-calculated Balance Amount: Wages - Advance
+  const currentWage = parseFloat(formData.wages) || 0;
+  const currentAdvance = parseFloat(formData.advance) || 0;
+  const currentBalance = currentWage - currentAdvance;
+
   const validate = () => {
     const errors = {};
+    if (!formData.employeeId) {
+      errors.employeeId = 'Please select an employee';
+    }
     if (!formData.date) {
       errors.date = 'Date is required';
     }
-    if (!formData.employeeId || !formData.employeeName) {
-      errors.employee = 'Employee must be selected from the workforce registry';
-    }
-    if (!formData.projectName) {
-      errors.project = 'Project or work site assignment is required';
+    if (isNaN(currentWage) || currentWage < 0) {
+      errors.wages = 'Valid non-negative wage is required';
     }
     if (isNaN(currentAdvance) || currentAdvance < 0) {
-      errors.advance = 'Advance must be a non-negative number';
-    }
-    if (isNaN(currentWages) || currentWages < 0) {
-      errors.wages = 'Wages must be a non-negative number';
+      errors.advance = 'Valid non-negative advance amount is required';
     }
 
     setValidationErrors(errors);
@@ -216,22 +221,22 @@ export function DailyWageFormModal({
         employeeName: formData.employeeName,
         employeeRole: formData.employeeRole,
         projectId: formData.projectId || 'GENERAL',
-        projectName: formData.projectName,
+        projectName: formData.projectName || 'General Road Maintenance',
         attendance: formData.attendance,
-        wages: currentWages,
+        wages: currentWage,
         advance: currentAdvance,
         balance: currentBalance,
         status: formData.status,
-        notes: formData.notes?.trim() || ''
+        notes: formData.notes.trim()
       };
 
       await onSave(payload, isEditMode ? initialData.id || initialData.wageId : null);
       onClose();
     } catch (err) {
-      console.error('Save wage entry error:', err);
+      console.error('Save wage error:', err);
       setValidationErrors((prev) => ({
         ...prev,
-        submit: err.message || 'Failed to save wage entry to Firestore.'
+        submit: err.message || 'Failed to save wage entry. Please check database connection.'
       }));
     } finally {
       setIsSubmitting(false);
@@ -242,154 +247,138 @@ export function DailyWageFormModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditMode ? `Edit Wage Entry: ${formData.wageId}` : 'Add Daily Wage / Advance Entry'}
-      subtitle="Record site attendance, daily earned wages, and cash advances"
+      title={isEditMode ? `Edit Daily Wage: ${formData.wageId}` : 'Add Daily Wage / Site Advance'}
+      subtitle={
+        isEditMode
+          ? 'Update muster roll attendance, wage, or advance settlement'
+          : 'Log worker shift or record advance disbursed directly on site'
+      }
       maxWidth="max-w-2xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {validationErrors.submit && (
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-xs text-rose-800">
-            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-xs text-[#DC5353]">
+            <AlertTriangle className="w-4 h-4 text-[#DC5353] shrink-0 mt-0.5" />
             <span>{validationErrors.submit}</span>
           </div>
         )}
 
-        {/* Date and ID */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Section 1: Worker & Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Employee Selection */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Entry ID
+            <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+              Select Employee <span className="text-[#DC5353]">*</span>
             </label>
-            <input
-              type="text"
-              value={formData.wageId}
-              disabled={isEditMode}
-              onChange={(e) => setFormData({ ...formData, wageId: e.target.value.toUpperCase() })}
-              className="w-full px-3 py-2 bg-slate-100 font-mono font-bold text-emerald-900 text-xs sm:text-sm rounded-xl border border-slate-300 focus:bg-white focus:outline-hidden"
-            />
+            <div className="relative">
+              <select
+                value={formData.employeeId}
+                onChange={(e) => handleEmployeeChange(e.target.value)}
+                className={`w-full px-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border ${
+                  validationErrors.employeeId ? 'border-rose-400 bg-rose-50/40' : 'border-[#E2E8F0]'
+                } focus:border-[#0F8B78] focus:outline-hidden`}
+              >
+                <option value="">-- Select Worker --</option>
+                {employees.map((emp) => (
+                  <option key={emp.employeeId} value={emp.employeeId}>
+                    {emp.name} ({emp.role} • {emp.employeeId})
+                  </option>
+                ))}
+              </select>
+            </div>
+            {validationErrors.employeeId && (
+              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.employeeId}</p>
+            )}
           </div>
 
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Work Date <span className="text-rose-500">*</span>
+          {/* Date */}
+          <div>
+            <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+              Date <span className="text-[#DC5353]">*</span>
             </label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full px-3 py-2 text-xs sm:text-sm bg-white rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-hidden"
-            />
+            <div className="relative">
+              <Calendar className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden font-mono"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Employee and Project Dropdowns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Employee from employee table */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Employee (from Employee Registry) <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={formData.employeeId}
-              onChange={(e) => handleEmployeeChange(e.target.value)}
-              className="w-full px-3 py-2 text-xs sm:text-sm bg-white rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-hidden"
-            >
-              <option value="">Select Employee...</option>
-              {employees.map((emp) => (
-                <option key={emp.employeeId} value={emp.employeeId}>
-                  {emp.name} ({emp.role} • {formatIndianCurrency(emp.dailyWageRate)}/day)
-                </option>
-              ))}
-            </select>
-            {formData.employeeRole && (
-              <p className="text-[11px] text-emerald-800 font-medium mt-1">
-                Selected: {formData.employeeName} ({formData.employeeRole})
-              </p>
-            )}
-            {validationErrors.employee && (
-              <p className="text-[11px] text-rose-600 mt-1">{validationErrors.employee}</p>
-            )}
-          </div>
-
-          {/* Project from project table */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Assigned Road Project <span className="text-rose-500">*</span>
-            </label>
+        {/* Section 2: Project Allocation */}
+        <div>
+          <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+            Allocated Road Project Site
+          </label>
+          <div className="relative">
             <select
               value={formData.projectId}
               onChange={(e) => handleProjectChange(e.target.value)}
-              className="w-full px-3 py-2 text-xs sm:text-sm bg-white rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-hidden"
+              className="w-full px-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden"
             >
-              <option value="">Select Project Site...</option>
-              {projects.map((proj) => (
-                <option key={proj.projectId} value={proj.projectId}>
-                  {proj.projectId} - {proj.projectName}
+              <option value="GENERAL">General Road Maintenance / Central Yard (No Specific PRJ)</option>
+              {projects.map((p) => (
+                <option key={p.projectId} value={p.projectId}>
+                  {p.projectId} - {p.projectName} ({p.localBody})
                 </option>
               ))}
-              <option value="GENERAL">General Depot / Equipment Yard Maintenance</option>
             </select>
-            {formData.projectName && (
-              <p className="text-[11px] text-slate-500 truncate mt-1">
-                Site: {formData.projectName}
-              </p>
-            )}
-            {validationErrors.project && (
-              <p className="text-[11px] text-rose-600 mt-1">{validationErrors.project}</p>
-            )}
           </div>
         </div>
 
-        {/* Attendance Status Selection */}
+        {/* Section 3: Attendance Radio Buttons */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Attendance Standing
+          <label className="block text-xs font-semibold text-[#172B4D] mb-1.5">
+            Shift Attendance Status
           </label>
-          <div className="grid grid-cols-3 gap-2.5">
-            {ATTENDANCE_STATUSES.map((status) => (
-              <label
-                key={status}
-                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
-                  formData.attendance === status
-                    ? status === 'Present'
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20'
-                      : status === 'Half Day'
-                      ? 'bg-blue-50 border-blue-500 text-blue-900 ring-2 ring-blue-500/20'
-                      : 'bg-amber-50 border-amber-500 text-amber-900 ring-2 ring-amber-500/20'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="attendance"
-                  value={status}
-                  checked={formData.attendance === status}
-                  onChange={() => handleAttendanceChange(status)}
-                  className="sr-only"
-                />
-                <span>{status}</span>
-              </label>
-            ))}
+          <div className="grid grid-cols-3 gap-2">
+            {ATTENDANCE_STATUSES.map((att) => {
+              const isSelected = formData.attendance === att;
+              return (
+                <label
+                  key={att}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                    isSelected
+                      ? att === 'Present'
+                        ? 'bg-[#0F8B78]/10 border-[#0F8B78] text-[#0F8B78] ring-2 ring-[#0F8B78]/20'
+                        : att === 'Half Day'
+                        ? 'bg-blue-50 border-blue-500 text-blue-900 ring-2 ring-blue-500/20'
+                        : 'bg-amber-50 border-amber-500 text-amber-900 ring-2 ring-amber-500/20'
+                      : 'bg-slate-50 border-[#E2E8F0] text-[#64748B] hover:bg-slate-100'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="attendanceStatus"
+                    value={att}
+                    checked={isSelected}
+                    onChange={() => handleAttendanceChange(att)}
+                    className="sr-only"
+                  />
+                  <span>{att}</span>
+                </label>
+              );
+            })}
           </div>
+          {formData.attendance === 'Absent / On Leave' && (
+            <div className="p-2.5 mt-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+              <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+              <span>
+                <strong>Worker on Leave:</strong> Wages earned is set to ₹0. Any advance entered below will be recorded as cash owed by the worker.
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Scenario Alert: Absent with Advance */}
-        {formData.attendance === 'Absent / On Leave' && (
-          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">
-              <strong className="block text-amber-950">Worker is Absent / On Leave Today:</strong>
-              Earned wage is ₹0. If the worker requested an advance today (e.g. <strong>₹300</strong>), enter it into the <em>Advance (₹)</em> box below. The system will record it with negative daily balance (advance owed).
-            </div>
-          </div>
-        )}
-
-        {/* Wage, Advance, and Balance */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-200">
-          {/* Wages (Earned Wage) */}
+        {/* Section 4: Wages, Advance, and Auto Computed Balance */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-[#E2E8F0]">
+          {/* Wages */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Earned Wages (₹)
+            <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+              Wages Earned (₹)
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
@@ -400,21 +389,21 @@ export function DailyWageFormModal({
                 disabled={formData.attendance === 'Absent / On Leave'}
                 value={formData.attendance === 'Absent / On Leave' ? '0' : formData.wages}
                 onChange={(e) => setFormData({ ...formData, wages: e.target.value })}
-                className={`w-full pl-7 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border ${
+                className={`w-full pl-7 pr-3 py-2 text-xs sm:text-sm font-mono tabular-nums text-[#172B4D] rounded-xl border ${
                   formData.attendance === 'Absent / On Leave'
-                    ? 'bg-slate-100 text-slate-400 border-slate-200'
-                    : 'border-slate-300 focus:border-emerald-600 focus:outline-hidden'
+                    ? 'bg-slate-100 text-slate-400 border-[#E2E8F0]'
+                    : 'border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden'
                 }`}
               />
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">
+            <p className="text-[10px] text-[#64748B] mt-1 font-mono tabular-nums">
               {formData.attendance === 'Absent / On Leave' ? '₹0 (No work done)' : 'Earned for day shift'}
             </p>
           </div>
 
           {/* Advance */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-[#172B4D] mb-1">
               Advance Disbursed (₹)
             </label>
             <div className="relative">
@@ -426,7 +415,7 @@ export function DailyWageFormModal({
                 placeholder="e.g. 300"
                 value={formData.advance}
                 onChange={(e) => handleAdvanceChange(e.target.value)}
-                className="w-full pl-7 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-hidden"
+                className="w-full pl-7 pr-3 py-2 text-xs sm:text-sm font-mono tabular-nums text-[#172B4D] rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden"
               />
             </div>
             <p className="text-[10px] text-amber-700 font-medium mt-1">
@@ -436,36 +425,36 @@ export function DailyWageFormModal({
 
           {/* Balance Amount (Auto Computed) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Balance Amount (₹) <span className="text-emerald-700 text-[10px]">(Auto)</span>
+            <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+              Balance Amount (₹) <span className="text-[#0F8B78] text-[10px]">(Auto)</span>
             </label>
-            <div className={`px-3 py-2 rounded-xl border font-mono font-bold text-xs sm:text-sm flex items-center justify-between ${
+            <div className={`px-3 py-2 rounded-xl border font-mono font-bold text-xs sm:text-sm flex items-center justify-between tabular-nums ${
               currentBalance < 0
-                ? 'bg-rose-50 text-rose-800 border-rose-200'
-                : 'bg-emerald-50 text-emerald-950 border-emerald-200'
+                ? 'bg-rose-50 text-[#DC5353] border-rose-200'
+                : 'bg-slate-50 text-[#172B4D] border-[#E2E8F0]'
             }`}>
               <span>{formatIndianCurrency(currentBalance)}</span>
-              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded bg-white/70">
+              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0]">
                 Wages - Adv
               </span>
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">
+            <p className="text-[10px] text-[#64748B] mt-1 font-mono tabular-nums">
               {currentBalance < 0
-                ? `Advance owed by worker: ${formatIndianCurrency(Math.abs(currentBalance))}`
-                : `Net payable to worker: ${formatIndianCurrency(currentBalance)}`}
+                ? `Advance owed: ${formatIndianCurrency(Math.abs(currentBalance))}`
+                : `Net payable: ${formatIndianCurrency(currentBalance)}`}
             </p>
           </div>
         </div>
 
-        {/* Payment Status Dropdown (Determines Employee Ledger Reflection) */}
+        {/* Payment Status Dropdown */}
         <div className="pt-2">
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Payment Status <span className="text-emerald-700 text-[10px] font-normal">(Reflects in Employee Table)</span>
+          <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+            Payment Status <span className="text-[#0F8B78] text-[10px] font-normal">(Reflects in Employee Table)</span>
           </label>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-3 py-2 text-xs sm:text-sm bg-white rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-hidden"
+            className="w-full px-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden"
           >
             {WAGE_PAYMENT_STATUSES.map((st) => (
               <option key={st} value={st}>
@@ -473,14 +462,14 @@ export function DailyWageFormModal({
               </option>
             ))}
           </select>
-          <p className="text-[10px] text-slate-500 mt-1">
+          <p className="text-[10px] text-[#64748B] mt-1">
             Controls whether earned wages are logged as Pending, Paid, or Advance Owed in the Employee directory.
           </p>
         </div>
 
         {/* Notes / Remarks */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-[#172B4D] mb-1">
             Notes / Reason / Remarks
           </label>
           <input
@@ -488,17 +477,17 @@ export function DailyWageFormModal({
             placeholder="e.g. Worker absent today, requested ₹300 cash advance for medical expenses"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-hidden"
+            className="w-full px-3 py-2 text-xs sm:text-sm text-[#172B4D] rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden"
           />
         </div>
 
         {/* Modal Actions */}
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+        <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-xs sm:text-sm font-semibold text-[#172B4D] bg-white hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
@@ -506,7 +495,7 @@ export function DailyWageFormModal({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-xs sm:text-sm font-bold text-white shadow-xs hover:shadow transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F8B78] hover:bg-[#0D7A69] text-xs sm:text-sm font-bold text-white shadow-2xs hover:shadow-xs transition-all disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             {isSubmitting ? 'Saving to Firestore...' : isEditMode ? 'Update Wage Entry' : 'Save Wage Record'}

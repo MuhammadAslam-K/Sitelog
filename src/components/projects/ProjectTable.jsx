@@ -25,12 +25,12 @@ export function ProjectTable({
 }) {
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
-      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors ml-1" />;
+      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#172B4D] transition-colors ml-1" />;
     }
     return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="w-3.5 h-3.5 text-emerald-700 ml-1" />
+      <ArrowUp className="w-3.5 h-3.5 text-[#0F8B78] ml-1" />
     ) : (
-      <ArrowDown className="w-3.5 h-3.5 text-emerald-700 ml-1" />
+      <ArrowDown className="w-3.5 h-3.5 text-[#0F8B78] ml-1" />
     );
   };
 
@@ -50,10 +50,10 @@ export function ProjectTable({
 
   if (projects.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center">
         <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <h4 className="text-base font-bold text-slate-800">No matching projects found</h4>
-        <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-5">
+        <h4 className="text-base font-bold text-[#172B4D]">No matching projects found</h4>
+        <p className="text-xs text-[#64748B] max-w-sm mx-auto mt-1 mb-5">
           {searchQuery
             ? `No projects matched "${searchQuery}". Try adjusting your keywords or clearing active filters.`
             : 'No construction projects registered under this filter.'}
@@ -61,7 +61,7 @@ export function ProjectTable({
         {onClearFilters && (
           <button
             onClick={onClearFilters}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-[#0F8B78] bg-[#0F8B78]/10 hover:bg-[#0F8B78]/20 border border-[#0F8B78]/30 transition-colors"
           >
             Clear All Filters
           </button>
@@ -71,11 +71,11 @@ export function ProjectTable({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[1050px]">
           <thead>
-            <tr className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider select-none">
+            <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider select-none">
               {headers.map((h) => (
                 <th
                   key={h.key}
@@ -85,7 +85,7 @@ export function ProjectTable({
                       : h.align === 'center'
                       ? 'text-center'
                       : 'text-left'
-                  } ${h.sortable ? 'cursor-pointer hover:bg-slate-200/60 transition-colors group' : ''}`}
+                  } ${h.sortable ? 'cursor-pointer hover:bg-slate-100/70 transition-colors group' : ''}`}
                   onClick={() => h.sortable && onSort(h.key)}
                 >
                   <div
@@ -104,49 +104,49 @@ export function ProjectTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-150 text-xs">
+          <tbody className="divide-y divide-[#E2E8F0] text-xs">
             {projects.map((project) => (
               <tr
                 key={project.id || project.projectId}
                 onClick={() => onViewProject(project)}
-                className={`hover:bg-emerald-50/40 transition-colors cursor-pointer group ${
+                className={`hover:bg-slate-50/80 transition-colors cursor-pointer group ${
                   project.isArchived ? 'bg-slate-50/60 opacity-75' : ''
                 }`}
               >
                 {/* 1. Project ID */}
-                <td className="py-3.5 px-3.5 whitespace-nowrap font-mono font-bold text-emerald-900 group-hover:text-emerald-700">
+                <td className="py-3.5 px-3.5 whitespace-nowrap font-mono font-bold text-[#0F8B78] group-hover:text-[#0D7A69]">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F8B78]"></span>
                     <span>{project.projectId}</span>
                   </div>
                 </td>
 
                 {/* 2. Project Name */}
-                <td className="py-3.5 px-3.5 font-semibold text-slate-900 max-w-xs">
+                <td className="py-3.5 px-3.5 font-semibold text-[#172B4D] max-w-xs">
                   <span className="line-clamp-2" title={project.projectName}>
                     {project.projectName}
                   </span>
                 </td>
 
                 {/* 3. Local Body */}
-                <td className="py-3.5 px-3.5 text-slate-600 whitespace-nowrap">
-                  <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200">
+                <td className="py-3.5 px-3.5 text-[#64748B] whitespace-nowrap">
+                  <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-[#172B4D] text-[11px] font-medium border border-[#E2E8F0]">
                     {project.localBody}
                   </span>
                 </td>
 
                 {/* 4. Work Type */}
-                <td className="py-3.5 px-3.5 text-slate-600 whitespace-nowrap">
-                  <TagBadge text={project.workType} variant="green" />
+                <td className="py-3.5 px-3.5 text-[#64748B] whitespace-nowrap">
+                  <TagBadge text={project.workType} variant="teal" />
                 </td>
 
                 {/* 5. Start Date */}
-                <td className="py-3.5 px-3.5 text-slate-500 whitespace-nowrap font-mono text-[11px]">
+                <td className="py-3.5 px-3.5 text-[#64748B] whitespace-nowrap font-mono text-[11px]">
                   {formatDate(project.startDate)}
                 </td>
 
                 {/* 6. Contract Value (₹) */}
-                <td className="py-3.5 px-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                <td className="py-3.5 px-3.5 text-right font-mono font-bold text-[#172B4D] tabular-nums whitespace-nowrap">
                   {formatIndianCurrency(project.contractValue)}
                 </td>
 
@@ -156,17 +156,17 @@ export function ProjectTable({
                 </td>
 
                 {/* 8. Other Total Exp (₹) */}
-                <td className="py-3.5 px-3.5 text-right font-mono text-slate-700 whitespace-nowrap">
+                <td className="py-3.5 px-3.5 text-right font-mono text-[#64748B] tabular-nums whitespace-nowrap">
                   {formatIndianCurrency(project.otherTotalExpenses)}
                 </td>
 
                 {/* 9. Total Labour Exp (₹) */}
-                <td className="py-3.5 px-3.5 text-right font-mono text-slate-700 whitespace-nowrap">
+                <td className="py-3.5 px-3.5 text-right font-mono text-[#64748B] tabular-nums whitespace-nowrap">
                   {formatIndianCurrency(project.totalLabourExpenses)}
                 </td>
 
                 {/* 10. Total Budget (₹) */}
-                <td className="py-3.5 px-3.5 text-right font-mono font-bold text-emerald-950 whitespace-nowrap bg-emerald-50/30">
+                <td className="py-3.5 px-3.5 text-right font-mono font-bold text-[#172B4D] tabular-nums whitespace-nowrap bg-slate-50/50">
                   {formatIndianCurrency(project.totalBudget)}
                 </td>
 
@@ -179,7 +179,7 @@ export function ProjectTable({
                     <button
                       onClick={() => onViewProject(project)}
                       title="View Project Details"
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-800 hover:bg-emerald-100/70 transition-colors"
+                      className="p-1.5 rounded-lg text-[#64748B] hover:text-[#0F8B78] hover:bg-[#0F8B78]/10 transition-colors"
                       aria-label="View Details"
                     >
                       <Eye className="w-4 h-4" />
@@ -188,7 +188,7 @@ export function ProjectTable({
                     <button
                       onClick={() => onEditProject(project)}
                       title="Edit Project"
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-blue-800 hover:bg-blue-100/70 transition-colors"
+                      className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
                       aria-label="Edit Project"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -199,8 +199,8 @@ export function ProjectTable({
                       title={project.isArchived ? 'Restore Project' : 'Archive Project'}
                       className={`p-1.5 rounded-lg transition-colors ${
                         project.isArchived
-                          ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-100/70'
-                          : 'text-slate-400 hover:text-rose-700 hover:bg-rose-100/70'
+                          ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
+                          : 'text-[#64748B] hover:text-[#DC5353] hover:bg-rose-50'
                       }`}
                       aria-label={project.isArchived ? 'Restore Project' : 'Archive Project'}
                     >
@@ -219,19 +219,19 @@ export function ProjectTable({
       </div>
 
       {/* Table Footer with Summary Count */}
-      <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <div className="px-6 py-3 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
         <span>
-          Showing <strong className="text-slate-800 font-semibold">{projects.length}</strong> project{projects.length === 1 ? '' : 's'} (Formatted in Indian standard numbering system: ₹)
+          Showing <strong className="text-[#172B4D] font-semibold">{projects.length}</strong> project{projects.length === 1 ? '' : 's'} (Formatted in Indian standard numbering system: ₹)
         </span>
         <div className="flex items-center gap-4 text-[11px]">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Ongoing
+            <span className="w-2 h-2 rounded-full bg-[#0F8B78]"></span> Ongoing
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-blue-500"></span> Completed
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span> Pending
+            <span className="w-2 h-2 rounded-full bg-[#F4B740]"></span> Pending
           </span>
         </div>
       </div>

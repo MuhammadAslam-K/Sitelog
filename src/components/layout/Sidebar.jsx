@@ -61,18 +61,18 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
           onSelectSection(item.id);
           if (onCloseMobile) onCloseMobile();
         }}
-        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all group ${
           isActive
-            ? 'bg-emerald-700/80 text-white shadow-xs font-semibold'
+            ? 'bg-[#0F8B78] text-white shadow-xs font-semibold'
             : item.functional
-            ? 'text-slate-300 hover:text-white hover:bg-emerald-900/40'
-            : 'text-slate-400 hover:text-slate-200 hover:bg-emerald-950/50'
+            ? 'text-slate-300 hover:text-white hover:bg-[#213963]'
+            : 'text-slate-400 hover:text-slate-200 hover:bg-[#1A3156]/50'
         }`}
       >
         <div className="flex items-center gap-3 min-w-0">
           <IconComponent
             className={`w-4 h-4 shrink-0 transition-transform ${
-              isActive ? 'text-amber-300 scale-110' : 'text-slate-400 group-hover:text-amber-200'
+              isActive ? 'text-white scale-110' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           />
           <span className="truncate">{item.label}</span>
@@ -81,14 +81,14 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
         {item.functional ? (
           <div className="flex items-center gap-1.5 shrink-0">
             {isViewOnly && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F4B740]/20 text-[#F4B740] border border-[#F4B740]/30">
                 View
               </span>
             )}
-            {isActive && <div className="w-1.5 h-1.5 rounded-full bg-amber-300"></div>}
+            {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white/90"></div>}
           </div>
         ) : (
-          <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-700/40 shrink-0">
+          <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#0F8B78]/15 text-[#2DD4BF] border border-[#0F8B78]/30 shrink-0">
             {item.phase || 'Soon'}
           </span>
         )}
@@ -97,18 +97,18 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
   };
 
   const content = (
-    <div className="flex flex-col h-full bg-emerald-950 text-slate-100 border-r border-emerald-900/70 select-none">
+    <div className="flex flex-col h-full bg-[#172B4D] text-slate-100 border-r border-[#1e365d] select-none">
       {/* Brand Header */}
-      <div className="p-5 border-b border-emerald-900/80 flex items-center justify-between">
+      <div className="p-5 border-b border-[#1e365d] flex items-center justify-between bg-[#152644]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-emerald-600 flex items-center justify-center shadow-md text-emerald-950 font-black">
-            <HardHat className="w-6 h-6 text-slate-900" />
+          <div className="w-10 h-10 rounded-xl bg-[#0F8B78] flex items-center justify-center shadow-md text-white font-black">
+            <HardHat className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="text-sm font-extrabold tracking-tight text-white leading-tight">
               {COMPANY_NAME}
             </h1>
-            <p className="text-[11px] font-medium text-emerald-400 leading-none mt-1">
+            <p className="text-[11px] font-medium text-slate-300 leading-none mt-1">
               Kerala Roadways PMS
             </p>
           </div>
@@ -117,7 +117,7 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
         {onCloseMobile && (
           <button 
             onClick={onCloseMobile} 
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-emerald-900/60"
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#213963]"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -130,10 +130,10 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
         {/* Core Operations Modules */}
         <div>
           <div className="px-3 mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Active Modules
             </span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0F8B78]"></span>
           </div>
           <div className="space-y-1">
             {functionalItems.map(renderNavItem)}
@@ -143,7 +143,7 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
         {/* Future Modules */}
         <div>
           <div className="px-3 mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            <Sparkles className="w-3 h-3 text-amber-400" />
+            <Sparkles className="w-3 h-3 text-[#F4B740]" />
             <span>Upcoming Modules</span>
           </div>
           <div className="space-y-1">
@@ -153,19 +153,19 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
       </div>
 
       {/* PWA In-App Installation Action */}
-      <div className="px-4 py-2.5 border-t border-emerald-900/60 bg-emerald-950/60">
+      <div className="px-4 py-2.5 border-t border-[#1e365d] bg-[#13233f]">
         <PWAInstallButton variant="sidebar" />
       </div>
 
       {/* Footer Info */}
-      <div className="p-4 border-t border-emerald-900/80 bg-emerald-950/70 text-xs text-slate-400">
+      <div className="p-4 border-t border-[#1e365d] bg-[#111f38] text-xs text-slate-400">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-slate-300 font-medium">Phase 1 Release</span>
-          <span className="px-1.5 py-0.5 rounded bg-emerald-800 text-amber-300 text-[10px] font-mono font-bold">
-            v1.0.0
+          <span className="text-slate-300 font-medium">Enterprise ERP</span>
+          <span className="px-1.5 py-0.5 rounded bg-[#213963] text-[#2DD4BF] text-[10px] font-mono font-bold">
+            v1.2.0
           </span>
         </div>
-        <p className="text-[10px] text-emerald-400/80 mt-1 truncate">
+        <p className="text-[10px] text-slate-400 mt-1 truncate">
           Live Firestore Sync Active
         </p>
       </div>
@@ -183,7 +183,7 @@ export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onClose
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-[#0c182c]/70 backdrop-blur-xs"
             onClick={onCloseMobile}
           />
           <div className="fixed inset-y-0 left-0 w-72 z-10 shadow-2xl animate-in slide-in-from-left duration-200">

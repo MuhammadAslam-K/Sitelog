@@ -3,7 +3,7 @@ import React from 'react';
 export function StatusBadge({ status, isArchived = false }) {
   if (isArchived) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-[#64748B] border border-[#E2E8F0]">
         <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
         Archived
       </span>
@@ -13,8 +13,8 @@ export function StatusBadge({ status, isArchived = false }) {
   switch (status) {
     case 'Ongoing':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0F8B78]/10 text-[#0F8B78] border border-[#0F8B78]/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#0F8B78] animate-pulse"></span>
           Ongoing
         </span>
       );
@@ -29,13 +29,13 @@ export function StatusBadge({ status, isArchived = false }) {
     case 'On Hold':
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#F4B740]"></span>
           Pending
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-[#172B4D] border border-[#E2E8F0]">
           {status || 'Unknown'}
         </span>
       );
@@ -44,10 +44,12 @@ export function StatusBadge({ status, isArchived = false }) {
 
 export function TagBadge({ text, variant = 'slate' }) {
   const styles = {
-    slate: 'bg-slate-100 text-slate-700 border-slate-200',
-    green: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    navy: 'bg-cyan-50 text-cyan-800 border-cyan-200',
-    amber: 'bg-amber-50 text-amber-800 border-amber-200'
+    slate: 'bg-slate-100 text-[#172B4D] border-[#E2E8F0]',
+    teal: 'bg-[#0F8B78]/10 text-[#0F8B78] border-[#0F8B78]/30',
+    green: 'bg-[#0F8B78]/10 text-[#0F8B78] border-[#0F8B78]/30',
+    navy: 'bg-[#172B4D]/10 text-[#172B4D] border-[#172B4D]/25',
+    amber: 'bg-amber-50 text-amber-800 border-amber-200',
+    danger: 'bg-rose-50 text-[#DC5353] border-rose-200'
   };
 
   return (

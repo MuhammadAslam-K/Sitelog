@@ -78,7 +78,7 @@ export const EXPENSE_CATEGORIES = [
     id: 'food', 
     label: 'Food', 
     description: 'Site crew meals, tea, refreshments & water supply',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    badgeClass: 'bg-[#0F8B78]/10 text-[#0F8B78] border border-[#0F8B78]/25'
   },
   { 
     id: 'other', 
@@ -163,19 +163,19 @@ export const ACCESS_LEVELS = [
     id: 'none', 
     label: 'No Access', 
     description: 'Module hidden or locked; cannot view', 
-    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200' 
+    badgeClass: 'bg-rose-50 text-[#DC5353] border border-rose-200' 
   },
   { 
     id: 'view', 
     label: 'View Only', 
     description: 'Can read, search and filter; cannot add, edit, or delete', 
-    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200' 
+    badgeClass: 'bg-[#F4B740]/15 text-[#b27918] border border-[#F4B740]/30' 
   },
   { 
     id: 'edit', 
     label: 'View & Edit', 
     description: 'Full operational access to create, edit, settle, and delete records', 
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+    badgeClass: 'bg-[#0F8B78]/10 text-[#0F8B78] border border-[#0F8B78]/25' 
   }
 ];
 

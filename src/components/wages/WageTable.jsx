@@ -39,12 +39,12 @@ export function WageTable({
 }) {
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
-      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors ml-1" />;
+      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#172B4D] transition-colors ml-1" />;
     }
     return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="w-3.5 h-3.5 text-emerald-700 ml-1" />
+      <ArrowUp className="w-3.5 h-3.5 text-[#0F8B78] ml-1" />
     ) : (
-      <ArrowDown className="w-3.5 h-3.5 text-emerald-700 ml-1" />
+      <ArrowDown className="w-3.5 h-3.5 text-[#0F8B78] ml-1" />
     );
   };
 
@@ -99,10 +99,10 @@ export function WageTable({
 
   if (wages.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center">
         <Coins className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <h4 className="text-base font-bold text-slate-800">No wage or attendance entries found</h4>
-        <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-5">
+        <h4 className="text-base font-bold text-[#172B4D]">No wage or attendance entries found</h4>
+        <p className="text-xs text-[#64748B] max-w-sm mx-auto mt-1 mb-5">
           {searchQuery
             ? `No records matched "${searchQuery}". Try clearing filters or search terms.`
             : 'No daily wage records or muster entries recorded under this filter.'}
@@ -110,7 +110,7 @@ export function WageTable({
         {onClearFilters && (
           <button
             onClick={onClearFilters}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-[#0F8B78] bg-[#0F8B78]/10 hover:bg-[#0F8B78]/20 border border-[#0F8B78]/30 transition-colors"
           >
             Clear All Filters
           </button>
@@ -123,27 +123,27 @@ export function WageTable({
     <div className="space-y-3">
       {/* Multi-Select Floating Action Bar when rows are selected */}
       {selectedInfo && selectedInfo.count > 0 && (
-        <div className="bg-emerald-900 text-white rounded-2xl p-3.5 sm:px-5 sm:py-3 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200 border border-emerald-700">
+        <div className="bg-[#172B4D] text-white rounded-2xl p-3.5 sm:px-5 sm:py-3 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200 border border-[#213963]">
           <div className="flex items-center gap-3">
-            <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-emerald-700 font-bold text-xs">
+            <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-[#0F8B78] text-white font-bold text-xs">
               {selectedInfo.count}
             </span>
             <div className="text-xs leading-tight">
               {selectedInfo.singleEmployee ? (
                 <>
-                  <p className="font-bold text-sm text-emerald-100">
+                  <p className="font-bold text-sm text-white">
                     {selectedInfo.count} Particular Date{selectedInfo.count > 1 ? 's' : ''} Selected for {selectedInfo.singleEmployee}
                   </p>
-                  <p className="text-emerald-300 text-[11px]">
+                  <p className="text-slate-300 text-[11px] font-mono tabular-nums">
                     Total Wages: ₹{selectedInfo.totalW} | Adv: ₹{selectedInfo.totalAdv} | Balance: ₹{selectedInfo.totalBal}
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="font-bold text-sm text-emerald-100">
+                  <p className="font-bold text-sm text-white">
                     {selectedInfo.count} Dates / Shift Records Selected
                   </p>
-                  <p className="text-emerald-300 text-[11px]">
+                  <p className="text-slate-300 text-[11px]">
                     From multiple employees • Click Create PDF to generate muster slip
                   </p>
                 </>
@@ -155,31 +155,32 @@ export function WageTable({
             <button
               type="button"
               onClick={onClearSelection}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-200 hover:text-white hover:bg-emerald-800 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#213963] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
-              <span>Clear</span>
+              <span>Deselect All</span>
             </button>
-            <button
-              type="button"
-              onClick={() => onCreatePdfForSelected && onCreatePdfForSelected(selectedInfo)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-emerald-950 bg-white hover:bg-emerald-50 shadow-md transition-all cursor-pointer"
-            >
-              <FileDown className="w-4 h-4 text-emerald-800" />
-              <span>
-                Create PDF for Selected ({selectedInfo.count} {selectedInfo.count === 1 ? 'Day' : 'Days'})
-              </span>
-            </button>
+
+            {onCreatePdfForSelected && (
+              <button
+                type="button"
+                onClick={() => onCreatePdfForSelected(selectedInfo)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs transition-all"
+              >
+                <FileDown className="w-4 h-4" />
+                <span>Create PDF for {selectedInfo.count} Date{selectedInfo.count > 1 ? 's' : ''}</span>
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      {/* Main Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+      {/* Main Table Card */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1100px]">
             <thead>
-              <tr className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider select-none">
+              <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider select-none">
                 {headers.map((h) => {
                   if (h.isCheckbox) {
                     return (
@@ -187,12 +188,12 @@ export function WageTable({
                         <input
                           type="checkbox"
                           checked={isAllVisibleSelected}
-                          ref={(input) => {
-                            if (input) input.indeterminate = isSomeVisibleSelected;
+                          ref={(el) => {
+                            if (el) el.indeterminate = isSomeVisibleSelected;
                           }}
                           onChange={(e) => onSelectAllWages && onSelectAllWages(e.target.checked)}
-                          className="w-4 h-4 rounded text-emerald-700 focus:ring-emerald-500 border-slate-300 cursor-pointer"
-                          title="Select all visible dates"
+                          className="w-4 h-4 rounded text-[#0F8B78] focus:ring-[#0F8B78] border-[#E2E8F0] cursor-pointer"
+                          title="Select all visible dates for multi-date PDF generation"
                         />
                       </th>
                     );
@@ -207,7 +208,7 @@ export function WageTable({
                           : h.align === 'center'
                           ? 'text-center'
                           : 'text-left'
-                      } ${h.sortable ? 'cursor-pointer hover:bg-slate-200/60 transition-colors group' : ''}`}
+                      } ${h.sortable ? 'cursor-pointer hover:bg-slate-100/70 transition-colors group' : ''}`}
                       onClick={() => h.sortable && onSort(h.key)}
                     >
                       <div
@@ -227,7 +228,7 @@ export function WageTable({
                 })}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-150 text-xs">
+            <tbody className="divide-y divide-[#E2E8F0] text-xs">
               {wages.map((item) => {
                 const itemId = item.id || item.wageId;
                 const isSelected = selectedWageIds.includes(itemId);
@@ -250,7 +251,7 @@ export function WageTable({
                     key={itemId}
                     className={`transition-colors ${
                       isSelected
-                        ? 'bg-emerald-50/70 hover:bg-emerald-50'
+                        ? 'bg-[#0F8B78]/10 hover:bg-[#0F8B78]/15'
                         : isAbsentWithAdvance
                         ? 'bg-amber-50/30 hover:bg-amber-50/50'
                         : 'hover:bg-slate-50/80'
@@ -262,21 +263,21 @@ export function WageTable({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => onToggleSelectWage && onToggleSelectWage(itemId)}
-                        className="w-4 h-4 rounded text-emerald-700 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                        className="w-4 h-4 rounded text-[#0F8B78] focus:ring-[#0F8B78] border-[#E2E8F0] cursor-pointer"
                         title={`Select date ${item.date} for ${item.employeeName}`}
                       />
                     </td>
 
                     {/* Entry ID */}
-                    <td className="py-3.5 px-3.5 whitespace-nowrap font-mono font-bold text-emerald-900">
+                    <td className="py-3.5 px-3.5 whitespace-nowrap font-mono font-bold text-[#0F8B78]">
                       <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#0F8B78]"></span>
                         <span>{item.wageId}</span>
                       </div>
                     </td>
 
                     {/* Date */}
-                    <td className="py-3.5 px-3.5 whitespace-nowrap text-slate-700 font-mono text-[11px]">
+                    <td className="py-3.5 px-3.5 whitespace-nowrap text-[#172B4D] font-mono text-[11px]">
                       <span className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
                         <strong className="font-semibold">{formatDate(item.date)}</strong>
@@ -286,8 +287,8 @@ export function WageTable({
                     {/* Employee Name */}
                     <td className="py-3.5 px-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{item.employeeName}</span>
-                        <span className="text-[10px] text-slate-500 font-medium">
+                        <span className="font-bold text-[#172B4D]">{item.employeeName}</span>
+                        <span className="text-[10px] text-[#64748B] font-medium">
                           {item.employeeRole} • {item.employeeId}
                         </span>
                       </div>
@@ -296,11 +297,11 @@ export function WageTable({
                     {/* Project Name */}
                     <td className="py-3.5 px-3.5 max-w-xs">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-slate-800 line-clamp-1" title={item.projectName}>
+                        <span className="font-semibold text-[#172B4D] line-clamp-1" title={item.projectName}>
                           {item.projectName}
                         </span>
                         {item.projectId && (
-                          <span className="font-mono text-[10px] text-emerald-800 font-medium">
+                          <span className="font-mono text-[10px] text-[#0F8B78] font-medium">
                             {item.projectId}
                           </span>
                         )}
@@ -310,8 +311,8 @@ export function WageTable({
                     {/* Attendance */}
                     <td className="py-3.5 px-3.5 text-center whitespace-nowrap">
                       {item.attendance === 'Present' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0F8B78]/10 text-[#0F8B78] border border-[#0F8B78]/25">
+                          <CheckCircle2 className="w-3 h-3 text-[#0F8B78]" />
                           Present
                         </span>
                       ) : item.attendance === 'Half Day' ? (
@@ -320,7 +321,7 @@ export function WageTable({
                           Half Day
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
                           <AlertCircle className="w-3 h-3 text-amber-600" />
                           Absent / Leave
                         </span>
@@ -328,7 +329,7 @@ export function WageTable({
                     </td>
 
                     {/* Wages (₹) */}
-                    <td className="py-3.5 px-3.5 text-right font-mono font-semibold text-slate-900 whitespace-nowrap">
+                    <td className="py-3.5 px-3.5 text-right font-mono tabular-nums font-semibold text-[#172B4D] whitespace-nowrap">
                       {item.wages > 0 ? (
                         formatIndianCurrency(item.wages)
                       ) : (
@@ -337,9 +338,9 @@ export function WageTable({
                     </td>
 
                     {/* Advance (₹) */}
-                    <td className="py-3.5 px-3.5 text-right font-mono font-bold whitespace-nowrap">
+                    <td className="py-3.5 px-3.5 text-right font-mono tabular-nums font-bold whitespace-nowrap">
                       {item.advance > 0 ? (
-                        <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                           {formatIndianCurrency(item.advance)}
                         </span>
                       ) : (
@@ -348,16 +349,16 @@ export function WageTable({
                     </td>
 
                     {/* Balance Amount (₹) */}
-                    <td className="py-3.5 px-3.5 text-right font-mono font-bold whitespace-nowrap">
+                    <td className="py-3.5 px-3.5 text-right font-mono tabular-nums font-bold whitespace-nowrap">
                       {isNegativeBalance ? (
                         <span 
-                          className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
+                          className="text-[#DC5353] bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
                           title="Worker was absent but granted advance cash"
                         >
                           -{formatIndianCurrency(Math.abs(item.balance))} (Adv)
                         </span>
                       ) : (
-                        <span className="text-emerald-800">
+                        <span className="text-[#0F8B78]">
                           {formatIndianCurrency(item.balance)}
                         </span>
                       )}
@@ -366,22 +367,22 @@ export function WageTable({
                     {/* Payment Status (Reflects in Employee Table) */}
                     <td className="py-3.5 px-3.5 text-center whitespace-nowrap">
                       {effectiveStatus === 'Paid' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                          <CheckCircle className="w-3 h-3 text-emerald-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#0F8B78]/10 text-[#0F8B78] border border-[#0F8B78]/25">
+                          <CheckCircle className="w-3 h-3 text-[#0F8B78]" />
                           Paid
                         </span>
                       ) : effectiveStatus === 'Pending' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                           <Clock className="w-3 h-3 text-amber-600" />
                           Pending
                         </span>
                       ) : effectiveStatus === 'Partial' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
                           <Coins className="w-3 h-3 text-blue-600" />
                           Partial (Adv)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-900 border border-purple-200">
                           <AlertCircle className="w-3 h-3 text-purple-600" />
                           Leave Adv
                         </span>
@@ -389,7 +390,7 @@ export function WageTable({
                     </td>
 
                     {/* Notes */}
-                    <td className="py-3.5 px-3.5 text-slate-600 text-xs max-w-xs">
+                    <td className="py-3.5 px-3.5 text-[#64748B] text-xs max-w-xs">
                       {isAbsentWithAdvance ? (
                         <span className="text-amber-900 font-medium text-[11px] flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -410,7 +411,7 @@ export function WageTable({
                           <button
                             onClick={() => onSettleWage(item)}
                             title="Settle Wage / Mark Paid in Full"
-                            className="p-1.5 rounded-lg text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100/80 transition-colors"
+                            className="p-1.5 rounded-lg text-[#0F8B78] hover:text-[#0D7A69] hover:bg-[#0F8B78]/10 transition-colors"
                             aria-label="Mark as Paid"
                           >
                             <CheckCircle2 className="w-4 h-4" />
@@ -425,7 +426,7 @@ export function WageTable({
                             }
                           }}
                           title={`Select dates & download Wage Slip PDF for ${item.employeeName}`}
-                          className="p-1.5 rounded-lg text-purple-700 hover:text-purple-900 hover:bg-purple-100/80 transition-colors"
+                          className="p-1.5 rounded-lg text-purple-700 hover:text-purple-900 hover:bg-purple-50 transition-colors"
                           aria-label="Select dates and download Wage Slip PDF"
                         >
                           <FileDown className="w-4 h-4" />
@@ -435,7 +436,7 @@ export function WageTable({
                           <button
                             onClick={() => onEditWage(item)}
                             title="Edit Entry"
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-800 hover:bg-blue-100/70 transition-colors"
+                            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
                             aria-label="Edit Entry"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -446,7 +447,7 @@ export function WageTable({
                           <button
                             onClick={() => onDeleteWage(item)}
                             title="Delete Entry"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-700 hover:bg-rose-100/70 transition-colors"
+                            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#DC5353] hover:bg-rose-50 transition-colors"
                             aria-label="Delete Entry"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -462,29 +463,29 @@ export function WageTable({
         </div>
 
         {/* Table Footer with Summaries */}
-        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+        <div className="px-6 py-3.5 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
           <div className="flex items-center gap-3">
             <span>
-              Total Entries: <strong className="text-slate-800 font-semibold">{wages.length}</strong>
+              Total Entries: <strong className="text-[#172B4D] font-semibold">{wages.length}</strong>
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-slate-600">
+            <span className="text-[#64748B]">
               Absent with Advance:{' '}
-              <strong className="text-amber-800">
+              <strong className="text-amber-700">
                 {wages.filter((w) => w.attendance === 'Absent / On Leave' && w.advance > 0).length}
               </strong>
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] font-mono">
+          <div className="flex items-center gap-4 text-[11px] font-mono tabular-nums">
             <span>
-              Total Earned: <strong className="text-slate-900">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.wages) || 0), 0))}</strong>
+              Total Earned: <strong className="text-[#172B4D]">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.wages) || 0), 0))}</strong>
             </span>
             <span>
-              Total Advance: <strong className="text-amber-800">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.advance) || 0), 0))}</strong>
+              Total Advance: <strong className="text-amber-700">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.advance) || 0), 0))}</strong>
             </span>
             <span>
-              Net Balance: <strong className="text-emerald-800">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.balance) || 0), 0))}</strong>
+              Net Balance: <strong className="text-[#0F8B78]">{formatIndianCurrency(wages.reduce((s, w) => s + (Number(w.balance) || 0), 0))}</strong>
             </span>
           </div>
         </div>
