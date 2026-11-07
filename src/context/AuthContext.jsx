@@ -8,7 +8,13 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  signOut, 
+  setPersistence, 
+  browserSessionPersistence 
+} from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/config.js';
 import { 
   DEFAULT_SUPER_ADMIN 
@@ -22,7 +28,7 @@ import {
 } from '../firebase/userService.js';
 
 const AuthContext = createContext(null);
-const SESSION_STORAGE_KEY = 'kerala_roadways_auth_user';
+const SESSION_STORAGE_KEY = 'kerala_roadways_window_session';
 const SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export function AuthProvider({ children }) {
@@ -34,26 +40,42 @@ export function AuthProvider({ children }) {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
 
-  // Initialize Super Admin in Firestore and verify any pre-existing session against database
+  // Initialize Super Admin in Firestore and verify any pre-existing session in THIS window/tab
   useEffect(() => {
     let isMounted = true;
 
     async function initAndVerifySession() {
       try {
+        // Enforce session-only persistence in Firebase Auth so other windows do not inherit it
+        await setPersistence(auth, browserSessionPersistence).catch(() => {});
+
         await initializeSuperAdminIfMissing().catch((err) => {
           console.warn('Super admin initialization check:', err);
         });
 
-        // Check if there is an existing stored session
-        const rawSession = localStorage.getItem(SESSION_STORAGE_KEY) || sessionStorage.getItem(SESSION_STORAGE_KEY);
+        // Clear any old legacy localStorage session keys so other browser windows/profiles do not leak
+        try {
+          localStorage.removeItem('kerala_roadways_auth_user');
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+        } catch {}
+
+        // Check if THIS specific browser window/tab session has an active, authenticated login
+        let rawSession = null;
+        try {
+          rawSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        } catch (e) {
+          console.warn('sessionStorage access notice:', e);
+        }
+
         if (rawSession) {
           const parsed = JSON.parse(rawSession);
 
           // Verify session timestamp expiration
           if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
             console.warn('Session has expired. Re-authentication required.');
-            localStorage.removeItem(SESSION_STORAGE_KEY);
-            sessionStorage.removeItem(SESSION_STORAGE_KEY);
+            try {
+              sessionStorage.removeItem(SESSION_STORAGE_KEY);
+            } catch {}
             if (isMounted) setCurrentUser(null);
           } else if (parsed.userId) {
             // Independently verify user exists and is Active in database
@@ -67,16 +89,21 @@ export function AuthProvider({ children }) {
             } else {
               // User disabled or deleted in database - invalidate session
               console.warn('Stored user session failed database verification.');
-              localStorage.removeItem(SESSION_STORAGE_KEY);
-              sessionStorage.removeItem(SESSION_STORAGE_KEY);
+              try {
+                sessionStorage.removeItem(SESSION_STORAGE_KEY);
+              } catch {}
               if (isMounted) setCurrentUser(null);
             }
           }
+        } else {
+          // No session in this window/tab - user must log in explicitly
+          if (isMounted) setCurrentUser(null);
         }
       } catch (e) {
         console.warn('Session verification exception:', e);
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        try {
+          sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        } catch {}
         if (isMounted) setCurrentUser(null);
       } finally {
         if (isMounted) setIsAuthChecking(false);
@@ -85,26 +112,17 @@ export function AuthProvider({ children }) {
 
     initAndVerifySession();
 
-    // Listen to Firebase Auth state for Google accounts
+    // Listen to Firebase Auth state for Google accounts ONLY if current session was initiated in this window
     const unsubscribeAuth = onAuthStateChanged(auth, async (fbUser) => {
       if (!isMounted) return;
-      if (fbUser) {
-        const isSuper = fbUser.email === 'aslamka.2k3@gmail.com';
-        const googleUser = {
-          userId: fbUser.uid,
-          name: fbUser.displayName || (isSuper ? 'Muhammad Aslam' : 'Google User'),
-          username: fbUser.email?.split('@')[0] || 'admin',
-          email: fbUser.email,
-          role: isSuper ? 'Super Admin' : 'Sub Admin',
-          designation: isSuper ? 'Managing Director' : 'Site Operations',
-          photoURL: fbUser.photoURL,
-          permissions: DEFAULT_SUPER_ADMIN.permissions,
-          sessionToken: `kr_goog_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-          expiresAt: Date.now() + SESSION_EXPIRY_MS
-        };
-        setCurrentUser(googleUser);
+      if (!fbUser) {
+        // If Firebase Auth signed out and current session was Google, clear session
         try {
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(googleUser));
+          const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+          if (raw && raw.includes('kr_goog_')) {
+            sessionStorage.removeItem(SESSION_STORAGE_KEY);
+            setCurrentUser(null);
+          }
         } catch {}
       }
     });
@@ -117,6 +135,7 @@ export function AuthProvider({ children }) {
 
   /**
    * Username / Password Login (Super Admin or Sub Admin)
+   * Scoped to this specific browser window/tab
    */
   const loginWithCredentials = async (usernameOrEmail, password) => {
     setAuthLoading(true);
@@ -131,7 +150,10 @@ export function AuthProvider({ children }) {
       };
 
       setCurrentUser(sessionUser);
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch {}
       setIsLoginModalOpen(false);
       return sessionUser;
     } catch (error) {
@@ -145,11 +167,13 @@ export function AuthProvider({ children }) {
 
   /**
    * Google Sign-In fallback
+   * Scoped to this specific browser window/tab
    */
   const loginWithGoogle = async () => {
     setAuthLoading(true);
     setAuthError(null);
     try {
+      await setPersistence(auth, browserSessionPersistence).catch(() => {});
       const result = await signInWithPopup(auth, googleProvider);
       const isSuper = result.user.email === 'aslamka.2k3@gmail.com';
       const googleUser = {
@@ -165,7 +189,10 @@ export function AuthProvider({ children }) {
         expiresAt: Date.now() + SESSION_EXPIRY_MS
       };
       setCurrentUser(googleUser);
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(googleUser));
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(googleUser));
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch {}
       setIsLoginModalOpen(false);
       return googleUser;
     } catch (error) {
@@ -178,7 +205,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Logs out the current user and completely terminates session
+   * Logs out the current user and completely terminates session in this window
    */
   const logout = async () => {
     try {
@@ -187,9 +214,12 @@ export function AuthProvider({ children }) {
       console.warn('Sign out warning:', e);
     }
     setCurrentUser(null);
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    sessionStorage.clear();
+    try {
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      sessionStorage.clear();
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      localStorage.removeItem('kerala_roadways_auth_user');
+    } catch {}
     setIsLoginModalOpen(false);
     // Invalidate browser navigation state to prevent cached back-button history inspection
     try {
@@ -205,8 +235,11 @@ export function AuthProvider({ children }) {
     try {
       const updatedUser = await resetPasswordByEmail(email, newPassword);
       if (currentUser && currentUser.email?.toLowerCase() === email.toLowerCase()) {
-        setCurrentUser(updatedUser);
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedUser));
+        const refreshed = { ...currentUser, ...updatedUser };
+        setCurrentUser(refreshed);
+        try {
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(refreshed));
+        } catch {}
       }
       return updatedUser;
     } finally {
