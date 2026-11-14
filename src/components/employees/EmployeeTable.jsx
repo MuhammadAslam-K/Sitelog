@@ -18,6 +18,7 @@ import {
   FileDown
 } from 'lucide-react';
 import { TagBadge } from '../common/Badge.jsx';
+import { TablePagination } from '../common/TablePagination.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { calculateEmployeeWageReflection } from '../../utils/wageCalculator.js';
 import { generateWageSlipPDF } from '../../utils/pdfGenerator.js';
@@ -37,6 +38,8 @@ export function EmployeeTable({
   const [selectedMusterEmployee, setSelectedMusterEmployee] = useState(null);
   const [selectedMusterReflection, setSelectedMusterReflection] = useState(null);
   const [selectedPdfEmployeeId, setSelectedPdfEmployeeId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const handleOpenMusterLedger = (emp, reflection) => {
     setSelectedMusterEmployee(emp);
@@ -111,6 +114,14 @@ export function EmployeeTable({
     0
   );
 
+  const totalPages = Math.max(1, Math.ceil(employeeReflections.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedReflections = employeeReflections.slice(
+    (safeCurrentPage - 1) * pageSize,
+    safeCurrentPage * pageSize
+  );
+
   return (
     <>
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
@@ -147,7 +158,7 @@ export function EmployeeTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0] text-xs">
-              {employeeReflections.map(({ emp, reflection }) => (
+              {paginatedReflections.map(({ emp, reflection }) => (
                 <tr
                   key={emp.id || emp.employeeId}
                   className={`hover:bg-slate-50/80 transition-colors group ${
@@ -327,13 +338,20 @@ export function EmployeeTable({
           </table>
         </div>
 
+        {/* Table Pagination Component */}
+        <TablePagination
+          currentPage={safeCurrentPage}
+          totalItems={employees.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 25, 50]}
+          itemName="employees"
+        />
+
         {/* Table Footer with Wage Summary from Live Reflection */}
         <div className="px-6 py-3.5 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
           <div className="flex items-center gap-2">
-            <span>
-              Total: <strong className="text-[#172B4D] font-semibold">{employees.length}</strong> employee{employees.length === 1 ? '' : 's'} registered
-            </span>
-            <span className="text-slate-300">•</span>
             <span className="flex items-center gap-1 text-[#0F8B78] text-[11px] font-medium">
               <ShieldCheck className="w-3.5 h-3.5 text-[#0F8B78]" />
               Wages live reflected from Daily Wages module by status

@@ -8,30 +8,16 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { formatDate } from './formatters.js';
 
 /**
- * Formats a date string (YYYY-MM-DD) to D/M/YYYY or DD/MM/YYYY
+ * Formats a date string (YYYY-MM-DD or ISO) to DD-MM-YYYY
  * @param {string} dateStr
  * @returns {string}
  */
 function formatSlipDate(dateStr) {
   if (!dateStr) return '';
-  try {
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const year = parts[0];
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      return `${day}/${month}/${year}`;
-    }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) {
-      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-    }
-    return dateStr;
-  } catch {
-    return dateStr;
-  }
+  return formatDate(dateStr);
 }
 
 /**
@@ -92,12 +78,7 @@ export function generateWageSlipPDF(employeeName, entries = [], meta = {}) {
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
-  doc.setTextColor(100, 116, 139);
-  const printDate = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  const printDate = formatDate(new Date());
   doc.text(`Generated: ${printDate}${meta.employeeId ? ` | ID: ${meta.employeeId}` : ''}`, 190, startY - 8, { align: 'right' });
 
   // Prepare table rows matching screenshot:
@@ -262,7 +243,7 @@ export function generateConsolidatedWagesPDF(wages = [], filterTitle = 'Daily Wa
   doc.setFontSize(9);
   doc.setTextColor(100, 116, 139);
   doc.text(`Filter / Period: ${filterTitle} | Total Records: ${wages.length}`, startX, startY + 6);
-  doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 280, startY + 6, { align: 'right' });
+  doc.text(`Generated on: ${formatDate(new Date())}`, 280, startY + 6, { align: 'right' });
 
   let totalWages = 0;
   let totalAdvance = 0;

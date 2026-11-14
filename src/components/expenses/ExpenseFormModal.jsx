@@ -15,6 +15,7 @@ import {
   Scale
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { EXPENSE_CATEGORIES } from '../../utils/constants.js';
 import { formatIndianCurrency } from '../../utils/formatters.js';
 
@@ -197,11 +198,12 @@ export function ExpenseFormModal({
               <Calendar className="w-3.5 h-3.5 text-[#0F8B78]" />
               Expense Date <span className="text-[#DC5353]">*</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className={`w-full px-3 py-2 text-sm bg-white border rounded-xl focus:border-[#0F8B78] focus:outline-none text-[#172B4D] font-mono ${
+              showIcon
+              wrapperClassName="w-full"
+              className={`w-full px-3 py-2 text-sm bg-white border rounded-xl peer-focus:border-[#0F8B78] text-[#172B4D] font-mono ${
                 validationErrors.date ? 'border-rose-400' : 'border-[#E2E8F0]'
               }`}
             />

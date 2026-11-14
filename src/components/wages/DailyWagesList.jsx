@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { WageTable } from './WageTable.jsx';
 import { WageSlipPdfModal } from './WageSlipPdfModal.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { ATTENDANCE_STATUSES, WAGE_PAYMENT_STATUSES } from '../../utils/constants.js';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { getWagePayableBalance, getWagePaidAmount } from '../../utils/wageCalculator.js';
@@ -466,12 +467,13 @@ export function DailyWagesList({
               <Calendar className="w-3.5 h-3.5 text-[#0F8B78]" />
               <span>From Date</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               value={fromDate}
               max={toDate || undefined}
               onChange={(e) => setFromDate(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 text-[#172B4D] rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:bg-white focus:outline-hidden font-mono"
+              showIcon
+              wrapperClassName="w-full"
+              className="w-full px-3 py-1.5 bg-slate-50 text-[#172B4D] rounded-xl border border-[#E2E8F0] peer-focus:border-[#0F8B78] peer-focus:bg-white font-mono"
             />
           </div>
 
@@ -481,12 +483,13 @@ export function DailyWagesList({
               <Calendar className="w-3.5 h-3.5 text-[#0F8B78]" />
               <span>To Date</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               value={toDate}
               min={fromDate || undefined}
               onChange={(e) => setToDate(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 text-[#172B4D] rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:bg-white focus:outline-hidden font-mono"
+              showIcon
+              wrapperClassName="w-full"
+              className="w-full px-3 py-1.5 bg-slate-50 text-[#172B4D] rounded-xl border border-[#E2E8F0] peer-focus:border-[#0F8B78] peer-focus:bg-white font-mono"
             />
           </div>
 

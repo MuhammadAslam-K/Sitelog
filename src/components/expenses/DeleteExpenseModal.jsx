@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle, Building2, Calendar, IndianRupee } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
-import { formatIndianCurrency } from '../../utils/formatters.js';
+import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 
 export function DeleteExpenseModal({
   isOpen,
@@ -60,7 +60,7 @@ export function DeleteExpenseModal({
 
           <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-[#64748B]">
             <div>
-              <span className="text-slate-400">Date:</span> {expenseEntry.date}
+              <span className="text-slate-400">Date:</span> {formatDate(expenseEntry.date)}
             </div>
             <div>
               <span className="text-slate-400">Project:</span> {expenseEntry.projectName || expenseEntry.projectId}

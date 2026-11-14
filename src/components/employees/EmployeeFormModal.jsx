@@ -11,6 +11,7 @@ import {
   Info
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { EMPLOYEE_ROLES, EMPLOYEE_STATUSES } from '../../utils/constants.js';
 import { formatIndianCurrency, calculateTotalBudget } from '../../utils/formatters.js';
 
@@ -251,12 +252,12 @@ export function EmployeeFormModal({
               Date / Joining Date <span className="text-[#DC5353]">*</span>
             </label>
             <div className="relative">
-              <Calendar className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="date"
+              <Calendar className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none" />
+              <DateInput
                 value={formData.joiningDate}
                 onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden"
+                wrapperClassName="w-full"
+                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] peer-focus:border-[#0F8B78]"
               />
             </div>
           </div>

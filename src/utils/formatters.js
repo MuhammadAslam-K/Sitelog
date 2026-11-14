@@ -42,19 +42,32 @@ export function formatIndianCompact(amount) {
 }
 
 /**
- * Formats an ISO date or YYYY-MM-DD into readable Indian date format (DD/MM/YYYY)
+ * Formats an ISO date or YYYY-MM-DD into readable DD-MM-YYYY format
+ * Strictly ensures day-first ordering (DD-MM-YYYY) without timezone shifts.
  * @param {string|Date} dateVal
  * @returns {string}
  */
 export function formatDate(dateVal) {
   if (!dateVal) return '-';
   try {
+    if (typeof dateVal === 'string') {
+      const trimmed = dateVal.trim();
+      // Directly parse YYYY-MM-DD or ISO string without UTC timezone offset corruption
+      const match = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (match) {
+        const year = match[1];
+        const month = match[2].padStart(2, '0');
+        const day = match[3].padStart(2, '0');
+        return `${day}-${month}-${year}`;
+      }
+    }
+
     const d = new Date(dateVal);
     if (isNaN(d.getTime())) return String(dateVal);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${day}-${month}-${year}`;
   } catch {
     return String(dateVal);
   }

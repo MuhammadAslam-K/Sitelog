@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   X, 
   Calendar, 
@@ -14,6 +14,7 @@ import {
   FileDown
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
+import { TablePagination } from '../common/TablePagination.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { generateWageSlipPDF } from '../../utils/pdfGenerator.js';
 
@@ -23,9 +24,19 @@ export function EmployeeMusterModal({
   employee,
   reflection
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+
   if (!employee) return null;
 
   const entries = reflection?.entries || [];
+  const totalPages = Math.max(1, Math.ceil(entries.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedEntries = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return entries.slice(start, start + pageSize);
+  }, [entries, safeCurrentPage, pageSize]);
 
   return (
     <Modal
@@ -137,7 +148,7 @@ export function EmployeeMusterModal({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
-                {entries.map((item) => {
+                {paginatedEntries.map((item) => {
                   const isLeave = item.attendance === 'Absent / On Leave';
                   const effectiveStatus = item.status || (isLeave ? 'Advance on Leave' : item.advance > 0 ? (item.balance > 0 ? 'Partial' : 'Paid') : 'Pending');
 
@@ -211,6 +222,17 @@ export function EmployeeMusterModal({
                 })}
               </tbody>
             </table>
+
+            {/* Table Pagination Component */}
+            <TablePagination
+              currentPage={safeCurrentPage}
+              totalItems={entries.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              pageSizeOptions={[5, 8, 15, 30]}
+              itemName="muster logs"
+            />
           </div>
         )}
 

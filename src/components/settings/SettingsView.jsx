@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Settings, 
   Users, 
@@ -21,6 +21,7 @@ import {
   Sliders,
   ChevronRight
 } from 'lucide-react';
+import { TablePagination } from '../common/TablePagination.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { SYSTEM_MODULES, ACCESS_LEVELS, DEFAULT_SUPER_ADMIN } from '../../utils/constants.js';
 
@@ -34,9 +35,19 @@ export function SettingsView({
 }) {
   const { currentUser, isSuperAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('subAdmins');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const subAdmins = systemUsers.filter((u) => u.role !== 'Super Admin');
   const superAdmin = systemUsers.find((u) => u.role === 'Super Admin') || DEFAULT_SUPER_ADMIN;
+
+  const totalPages = Math.max(1, Math.ceil(subAdmins.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedSubAdmins = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return subAdmins.slice(start, start + pageSize);
+  }, [subAdmins, safeCurrentPage, pageSize]);
 
   const getPermissionBadge = (level) => {
     switch (level) {
@@ -224,7 +235,7 @@ export function SettingsView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E8F0]">
-                  {subAdmins.map((user) => (
+                  {paginatedSubAdmins.map((user) => (
                     <tr key={user.userId || user.id} className="hover:bg-slate-50/70 transition-colors">
                       {/* Name & Designation */}
                       <td className="py-3 px-4">
@@ -319,6 +330,17 @@ export function SettingsView({
                   ))}
                 </tbody>
               </table>
+
+              {/* Table Pagination Component */}
+              <TablePagination
+                currentPage={safeCurrentPage}
+                totalItems={subAdmins.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                pageSizeOptions={[5, 10, 20]}
+                itemName="staff accounts"
+              />
             </div>
           )}
         </div>

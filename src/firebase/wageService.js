@@ -19,9 +19,11 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
+import { getWagePaidAmount } from '../utils/wageCalculator.js';
 
 const WAGES_COLLECTION = 'dailyWages';
 const EMPLOYEES_COLLECTION = 'employees';
+const PROJECTS_COLLECTION = 'projects';
 const COUNTERS_COLLECTION = 'counters';
 const WAGE_COUNTER_DOC = 'wages';
 
@@ -143,6 +145,43 @@ export async function syncEmployeeWages(employeeId) {
 }
 
 /**
+ * Recalculates totalLabourExpenses and totalBudget for a specific project
+ * based on all paid daily wages (status === 'Paid' or site advances) recorded in Firestore.
+ * @param {string} projectId
+ */
+export async function syncProjectLabourExpenses(projectId) {
+  if (!projectId || projectId === 'GENERAL') return;
+
+  try {
+    const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
+    const projSnap = await getDoc(projectRef);
+    if (!projSnap.exists()) return;
+
+    const wageSnap = await getDocs(
+      query(collection(db, WAGES_COLLECTION), where('projectId', '==', projectId))
+    );
+
+    let totalLabourPaid = 0;
+    wageSnap.docs.forEach((d) => {
+      const entry = d.data();
+      totalLabourPaid += getWagePaidAmount(entry);
+    });
+
+    const projectData = projSnap.data();
+    const otherExp = Number(projectData.otherTotalExpenses) || 0;
+    const totalBudget = otherExp + totalLabourPaid;
+
+    await updateDoc(projectRef, {
+      totalLabourExpenses: totalLabourPaid,
+      totalBudget: totalBudget,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.warn(`Could not sync project labour expenses for ${projectId}:`, error);
+  }
+}
+
+/**
  * Creates a new Daily Wage entry in Firestore
  * Automatically synchronizes with the Employee's wage totals
  * @param {Object} wageData
@@ -204,6 +243,11 @@ export async function createDailyWage(wageData, user = null) {
     // Sync employee wage totals in background
     syncEmployeeWages(wageData.employeeId);
 
+    // Sync project total labour expenses if linked to a project
+    if (wageData.projectId && wageData.projectId !== 'GENERAL') {
+      syncProjectLabourExpenses(wageData.projectId);
+    }
+
     return { id: wageId, ...newWageEntry };
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, WAGES_COLLECTION);
@@ -221,6 +265,9 @@ export async function createDailyWage(wageData, user = null) {
 export async function updateDailyWage(wageId, wageData, user = null) {
   try {
     const docRef = doc(db, WAGES_COLLECTION, wageId);
+    const existingSnap = await getDoc(docRef);
+    const prevProjectId = existingSnap.exists() ? existingSnap.data().projectId : null;
+
     const attendance = wageData.attendance || 'Present';
     let wages = Number(wageData.wages) || 0;
     if (attendance === 'Absent / On Leave') {
@@ -267,6 +314,14 @@ export async function updateDailyWage(wageId, wageData, user = null) {
 
     // Sync employee wage totals
     syncEmployeeWages(wageData.employeeId);
+
+    // Sync project total labour expenses
+    if (wageData.projectId && wageData.projectId !== 'GENERAL') {
+      syncProjectLabourExpenses(wageData.projectId);
+    }
+    if (prevProjectId && prevProjectId !== wageData.projectId && prevProjectId !== 'GENERAL') {
+      syncProjectLabourExpenses(prevProjectId);
+    }
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${WAGES_COLLECTION}/${wageId}`);
     throw error;
@@ -294,6 +349,9 @@ export async function settleDailyWage(wageId, user = null) {
     });
 
     syncEmployeeWages(data.employeeId);
+    if (data.projectId && data.projectId !== 'GENERAL') {
+      syncProjectLabourExpenses(data.projectId);
+    }
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${WAGES_COLLECTION}/${wageId}`);
     throw error;
@@ -310,11 +368,15 @@ export async function deleteDailyWage(wageId) {
     const docRef = doc(db, WAGES_COLLECTION, wageId);
     const snap = await getDoc(docRef);
     const employeeId = snap.exists() ? snap.data().employeeId : null;
+    const projectId = snap.exists() ? snap.data().projectId : null;
 
     await deleteDoc(docRef);
 
     if (employeeId) {
       syncEmployeeWages(employeeId);
+    }
+    if (projectId && projectId !== 'GENERAL') {
+      syncProjectLabourExpenses(projectId);
     }
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${WAGES_COLLECTION}/${wageId}`);

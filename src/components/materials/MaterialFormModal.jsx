@@ -14,6 +14,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { 
   COMMON_MATERIAL_ITEMS, 
   MATERIAL_UNITS, 
@@ -217,15 +218,15 @@ export function MaterialFormModal({
               Receipt Date <span className="text-[#DC5353]">*</span>
             </label>
             <div className="relative">
-              <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
-              <input
-                type="date"
+              <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] z-20 pointer-events-none" />
+              <DateInput
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className={`w-full pl-9 pr-3 py-2 text-sm rounded-xl border bg-white text-[#172B4D] focus:outline-none focus:ring-2 transition-all ${
+                wrapperClassName="w-full"
+                className={`w-full pl-9 pr-3 py-2 text-sm rounded-xl border bg-white text-[#172B4D] transition-all ${
                   validationErrors.date
-                    ? 'border-rose-300 focus:ring-rose-500/20'
-                    : 'border-[#E2E8F0] focus:border-[#0F8B78] focus:ring-[#0F8B78]/20'
+                    ? 'border-rose-300 peer-focus:ring-2 peer-focus:ring-rose-500/20'
+                    : 'border-[#E2E8F0] peer-focus:border-[#0F8B78] peer-focus:ring-2 peer-focus:ring-[#0F8B78]/20'
                 }`}
                 required
               />

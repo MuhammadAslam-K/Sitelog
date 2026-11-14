@@ -16,6 +16,7 @@ import {
   Building2
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { generateWageSlipPDF, generateConsolidatedWagesPDF } from '../../utils/pdfGenerator.js';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { getWagePayableBalance } from '../../utils/wageCalculator.js';
@@ -286,23 +287,23 @@ export function WageSlipPdfModal({
 
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] text-[#64748B]">From</span>
-              <input
-                type="date"
+              <DateInput
                 value={filterFromDate}
                 max={filterToDate || undefined}
                 onChange={(e) => setFilterFromDate(e.target.value)}
-                className="px-2 py-1 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs font-mono text-[#172B4D]"
+                showIcon
+                className="px-2 py-1 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs font-mono text-[#172B4D] peer-focus:border-[#0F8B78]"
               />
             </div>
 
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] text-[#64748B]">To</span>
-              <input
-                type="date"
+              <DateInput
                 value={filterToDate}
                 min={filterFromDate || undefined}
                 onChange={(e) => setFilterToDate(e.target.value)}
-                className="px-2 py-1 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs font-mono text-[#172B4D]"
+                showIcon
+                className="px-2 py-1 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs font-mono text-[#172B4D] peer-focus:border-[#0F8B78]"
               />
             </div>
 
@@ -458,7 +459,7 @@ export function WageSlipPdfModal({
                     selectedEntries.map((row) => (
                       <tr key={row.id || row.wageId} className="hover:bg-slate-50">
                         <td className="border-r-2 border-[#172B4D] py-1.5 px-3 font-sans">
-                          {row.date ? row.date.split('-').reverse().join('/') : '-'}
+                          {row.date ? formatDate(row.date) : '-'}
                         </td>
                         <td className="border-r-2 border-[#172B4D] py-1.5 px-3 text-center font-sans font-semibold text-[#0F8B78]">
                           {row.attendance || 'Present'}

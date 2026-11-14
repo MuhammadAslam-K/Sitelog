@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge, TagBadge } from '../common/Badge.jsx';
 import { formatIndianCurrency, formatIndianCompact, formatDate } from '../../utils/formatters.js';
+import { getWagePaidAmount } from '../../utils/wageCalculator.js';
 import { ExpenseTable } from '../expenses/ExpenseTable.jsx';
 import { WageTable } from '../wages/WageTable.jsx';
 import { MaterialTable } from '../materials/MaterialTable.jsx';
@@ -51,9 +52,10 @@ export function ProjectDetails({
   const projectMaterials = materials.filter((m) => m.projectId === project.projectId);
 
   const contractVal = Number(project.contractValue) || 0;
-  const labourExp = Number(project.totalLabourExpenses) || 0;
+  const projectPaidWages = projectWages.reduce((sum, w) => sum + getWagePaidAmount(w), 0);
+  const labourExp = projectWages.length > 0 ? projectPaidWages : (Number(project.totalLabourExpenses) || 0);
   const otherExp = Number(project.otherTotalExpenses) || 0;
-  const totalBudget = Number(project.totalBudget) || (labourExp + otherExp);
+  const totalBudget = labourExp + otherExp;
 
   const budgetUsagePercent = contractVal > 0 
     ? Math.min(100, Math.round((totalBudget / contractVal) * 100))
@@ -208,7 +210,9 @@ export function ProjectDetails({
                 {formatIndianCurrency(labourExp)}
               </p>
               <p className="text-[11px] text-[#64748B] mt-1 font-medium">
-                {contractVal > 0 ? `${Math.round((labourExp / contractVal) * 100)}% of Contract` : '0%'}
+                {projectWages.length > 0 
+                  ? `Reflects ${formatIndianCurrency(projectPaidWages)} paid wages (${projectWages.filter(w => w.status === 'Paid').length} settled)`
+                  : contractVal > 0 ? `${Math.round((labourExp / contractVal) * 100)}% of Contract` : '0%'}
               </p>
             </div>
 
@@ -343,9 +347,12 @@ export function ProjectDetails({
               <p className="text-xs text-[#64748B]">All daily wages and attendance records logged under this project.</p>
             </div>
             <div className="text-right">
-              <span className="text-xs text-[#64748B] block">Total Project Wages:</span>
-              <span className="text-base font-extrabold text-[#0F8B78] font-mono tabular-nums">
-                {formatIndianCurrency(projectWages.reduce((sum, w) => sum + (Number(w.wages) || 0), 0))}
+              <span className="text-xs text-[#64748B] block">Paid Labour Expense:</span>
+              <span className="text-base font-extrabold text-[#0F8B78] font-mono tabular-nums block">
+                {formatIndianCurrency(projectPaidWages)}
+              </span>
+              <span className="text-[10px] text-[#64748B] block">
+                Gross Earned: {formatIndianCurrency(projectWages.reduce((sum, w) => sum + (Number(w.wages) || 0), 0))}
               </span>
             </div>
           </div>

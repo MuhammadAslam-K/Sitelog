@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Edit3, 
   Trash2, 
@@ -13,13 +13,24 @@ import {
   Clock,
   ExternalLink
 } from 'lucide-react';
-import { formatIndianCurrency } from '../../utils/formatters.js';
+import { TablePagination } from '../common/TablePagination.jsx';
+import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 
 export function MaterialTable({
   materials = [],
   onEditMaterial,
   onDeleteMaterial
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.max(1, Math.ceil(materials.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedMaterials = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return materials.slice(start, start + pageSize);
+  }, [materials, safeCurrentPage, pageSize]);
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Paid':
@@ -91,7 +102,7 @@ export function MaterialTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-[#E2E8F0]">
-          {materials.map((mat) => (
+          {paginatedMaterials.map((mat) => (
             <tr
               key={mat.materialId || mat.id}
               className="hover:bg-slate-50/80 transition-colors group"
@@ -107,7 +118,7 @@ export function MaterialTable({
               <td className="py-3 px-4 whitespace-nowrap">
                 <div className="flex items-center gap-1.5 text-[#172B4D] font-medium">
                   <Calendar className="w-3.5 h-3.5 text-[#64748B]" />
-                  <span>{mat.date}</span>
+                  <span>{formatDate(mat.date)}</span>
                 </div>
               </td>
 
@@ -223,6 +234,17 @@ export function MaterialTable({
           ))}
         </tbody>
       </table>
+
+      {/* Table Pagination Component */}
+      <TablePagination
+        currentPage={safeCurrentPage}
+        totalItems={materials.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[10, 25, 50]}
+        itemName="materials"
+      />
     </div>
   );
 }

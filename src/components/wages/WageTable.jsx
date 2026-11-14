@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ArrowUpDown, 
   ArrowUp, 
@@ -17,6 +17,7 @@ import {
   Sparkles,
   X
 } from 'lucide-react';
+import { TablePagination } from '../common/TablePagination.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { getWagePayableBalance, getWagePaidAmount } from '../../utils/wageCalculator.js';
 
@@ -38,6 +39,17 @@ export function WageTable({
   onClearSelection,
   onCreatePdfForSelected
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.max(1, Math.ceil(wages.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedWages = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return wages.slice(start, start + pageSize);
+  }, [wages, safeCurrentPage, pageSize]);
+
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
       return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#172B4D] transition-colors ml-1" />;
@@ -49,8 +61,8 @@ export function WageTable({
     );
   };
 
-  const isAllVisibleSelected = wages.length > 0 && wages.every((w) => selectedWageIds.includes(w.id || w.wageId));
-  const isSomeVisibleSelected = wages.some((w) => selectedWageIds.includes(w.id || w.wageId)) && !isAllVisibleSelected;
+  const isAllVisibleSelected = paginatedWages.length > 0 && paginatedWages.every((w) => selectedWageIds.includes(w.id || w.wageId));
+  const isSomeVisibleSelected = paginatedWages.some((w) => selectedWageIds.includes(w.id || w.wageId)) && !isAllVisibleSelected;
 
   // Analysis of selected records
   const selectedInfo = useMemo(() => {
@@ -233,7 +245,7 @@ export function WageTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0] text-xs">
-              {wages.map((item) => {
+              {paginatedWages.map((item) => {
                 const itemId = item.id || item.wageId;
                 const isSelected = selectedWageIds.includes(itemId);
                 const isAbsentWithAdvance = item.attendance === 'Absent / On Leave' && item.advance > 0;
@@ -268,7 +280,7 @@ export function WageTable({
                         checked={isSelected}
                         onChange={() => onToggleSelectWage && onToggleSelectWage(itemId)}
                         className="w-4 h-4 rounded text-[#0F8B78] focus:ring-[#0F8B78] border-[#E2E8F0] cursor-pointer"
-                        title={`Select date ${item.date} for ${item.employeeName}`}
+                        title={`Select date ${formatDate(item.date)} for ${item.employeeName}`}
                       />
                     </td>
 
@@ -475,13 +487,20 @@ export function WageTable({
           </table>
         </div>
 
+        {/* Table Pagination Component */}
+        <TablePagination
+          currentPage={safeCurrentPage}
+          totalItems={wages.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 25, 50]}
+          itemName="muster shifts"
+        />
+
         {/* Table Footer with Summaries */}
         <div className="px-6 py-3.5 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
           <div className="flex items-center gap-3">
-            <span>
-              Total Entries: <strong className="text-[#172B4D] font-semibold">{wages.length}</strong>
-            </span>
-            <span className="text-slate-300">•</span>
             <span className="text-[#64748B]">
               Absent with Advance:{' '}
               <strong className="text-amber-700">

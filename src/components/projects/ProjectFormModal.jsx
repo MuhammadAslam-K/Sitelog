@@ -11,6 +11,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { LOCAL_BODIES, WORK_TYPES, PROJECT_STATUSES } from '../../utils/constants.js';
 import { formatIndianCurrency, formatIndianCompact, calculateTotalBudget } from '../../utils/formatters.js';
 
@@ -271,11 +272,12 @@ export function ProjectFormModal({
               <label className="block text-xs font-semibold text-[#172B4D] mb-1">
                 Start Date <span className="text-[#DC5353]">*</span>
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden"
+                showIcon
+                wrapperClassName="w-full"
+                className="w-full px-3 py-2 text-xs sm:text-sm text-[#172B4D] bg-white rounded-xl border border-[#E2E8F0] peer-focus:border-[#0F8B78]"
               />
             </div>
 

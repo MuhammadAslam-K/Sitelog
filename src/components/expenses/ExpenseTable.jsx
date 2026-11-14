@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Edit3, 
   Trash2, 
@@ -12,7 +12,8 @@ import {
   UserCheck,
   Scale
 } from 'lucide-react';
-import { formatIndianCurrency } from '../../utils/formatters.js';
+import { TablePagination } from '../common/TablePagination.jsx';
+import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { EXPENSE_CATEGORIES } from '../../utils/constants.js';
 
 export function ExpenseTable({
@@ -20,6 +21,16 @@ export function ExpenseTable({
   onEditExpense,
   onDeleteExpense
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.max(1, Math.ceil(expenses.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedExpenses = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return expenses.slice(start, start + pageSize);
+  }, [expenses, safeCurrentPage, pageSize]);
   const getCategoryBadge = (categoryKey) => {
     const cat = EXPENSE_CATEGORIES.find((c) => c.id === categoryKey) || {
       label: categoryKey,
@@ -71,7 +82,7 @@ export function ExpenseTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-[#E2E8F0]">
-          {expenses.map((expense) => (
+          {paginatedExpenses.map((expense) => (
             <tr
               key={expense.expenseId || expense.id}
               className="hover:bg-slate-50/80 transition-colors group"
@@ -87,7 +98,7 @@ export function ExpenseTable({
               <td className="py-3 px-4 whitespace-nowrap">
                 <div className="flex items-center gap-1.5 text-[#172B4D] font-medium font-mono text-[11px]">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{expense.date}</span>
+                  <span>{formatDate(expense.date)}</span>
                 </div>
               </td>
 
@@ -185,7 +196,7 @@ export function ExpenseTable({
         <tfoot className="bg-slate-50 font-bold border-t border-[#E2E8F0]">
           <tr>
             <td colSpan={7} className="py-3 px-4 text-right text-[#64748B] uppercase tracking-wider text-[11px]">
-              Total Displayed Expenses ({expenses.length} Records):
+              Total Overall Expenses ({expenses.length} Records):
             </td>
             <td className="py-3 px-4 text-right text-sm font-extrabold text-[#0F8B78] font-mono tabular-nums">
               {formatIndianCurrency(
@@ -196,6 +207,17 @@ export function ExpenseTable({
           </tr>
         </tfoot>
       </table>
+
+      {/* Table Pagination Component */}
+      <TablePagination
+        currentPage={safeCurrentPage}
+        totalItems={expenses.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[10, 25, 50]}
+        itemName="expenses"
+      />
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ExpenseTable } from './ExpenseTable.jsx';
 import { MetricCard } from '../dashboard/MetricCard.jsx';
+import { DateInput } from '../common/DateInput.jsx';
 import { EXPENSE_CATEGORIES } from '../../utils/constants.js';
 import { formatIndianCurrency, formatIndianCompact } from '../../utils/formatters.js';
 
@@ -301,18 +302,18 @@ export function DailyExpensesList({
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-[#E2E8F0]">
               <Calendar className="w-3.5 h-3.5 text-[#0F8B78]" />
-              <input
-                type="date"
+              <DateInput
                 value={fromDate}
+                max={toDate || undefined}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="bg-transparent text-xs text-[#172B4D] focus:outline-none font-mono"
+                className="bg-transparent text-xs text-[#172B4D] font-mono min-w-[82px]"
               />
               <span className="text-[#64748B] text-xs">to</span>
-              <input
-                type="date"
+              <DateInput
                 value={toDate}
+                min={fromDate || undefined}
                 onChange={(e) => setToDate(e.target.value)}
-                className="bg-transparent text-xs text-[#172B4D] focus:outline-none font-mono"
+                className="bg-transparent text-xs text-[#172B4D] font-mono min-w-[82px]"
               />
               {(fromDate || toDate) && (
                 <button

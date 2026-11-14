@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { Layout } from './components/layout/Layout.jsx';
 import { DashboardOverview } from './components/dashboard/DashboardOverview.jsx';
@@ -74,6 +74,7 @@ import {
 import { Loader2, HardHat } from 'lucide-react';
 import { PWAUpdatePrompt } from './components/pwa/PWAUpdatePrompt.jsx';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator.jsx';
+import { getWagePaidAmount } from './utils/wageCalculator.js';
 
 function ConstructionApp() {
   const { 
@@ -177,6 +178,25 @@ function ConstructionApp() {
   const [deleteTargetMaterial, setDeleteTargetMaterial] = useState(null);
   const [isDeleteMaterialModalOpen, setIsDeleteMaterialModalOpen] = useState(false);
   const [isSeedingMaterials, setIsSeedingMaterials] = useState(false);
+
+  // Live reflection: projects' totalLabourExpenses directly reflects paid wages from dailyWages
+  const enhancedProjects = useMemo(() => {
+    return projects.map((p) => {
+      const pWages = wages.filter((w) => w.projectId === p.projectId);
+      const liveLabourPaid = pWages.reduce((sum, w) => sum + getWagePaidAmount(w), 0);
+      const effectiveLabour = pWages.length > 0 ? liveLabourPaid : (Number(p.totalLabourExpenses) || 0);
+      const otherExp = Number(p.otherTotalExpenses) || 0;
+      const totalBudget = otherExp + effectiveLabour;
+
+      return {
+        ...p,
+        totalLabourExpenses: effectiveLabour,
+        totalBudget: totalBudget,
+        liveLabourPaid,
+        hasLiveWages: pWages.length > 0
+      };
+    });
+  }, [projects, wages]);
 
   // Settings & System Users State (Phase 8)
   const [systemUsers, setSystemUsers] = useState([]);
@@ -1113,7 +1133,7 @@ function ConstructionApp() {
       ) : selectedProject ? (
         /* Project Details Page */
         <ProjectDetails
-          project={selectedProject}
+          project={selectedProject ? (enhancedProjects.find((p) => p.projectId === selectedProject.projectId) || selectedProject) : null}
           wages={wages}
           expenses={expenses}
           materials={materials}
@@ -1131,7 +1151,7 @@ function ConstructionApp() {
       ) : currentSection === 'dashboard' ? (
         /* Unified Common Dashboard */
         <DashboardOverview
-          projects={projects}
+          projects={enhancedProjects}
           employees={employees}
           wages={wages}
           expenses={expenses}
@@ -1147,7 +1167,7 @@ function ConstructionApp() {
       ) : currentSection === 'projects' ? (
         /* Projects Page */
         <ProjectsList
-          projects={projects}
+          projects={enhancedProjects}
           onAddNewProject={canEditModule('projects') ? handleOpenAddProjectModal : null}
           onViewProject={(proj) => setSelectedProject(proj)}
           onEditProject={canEditModule('projects') ? handleOpenEditProjectModal : null}
@@ -1279,7 +1299,7 @@ function ConstructionApp() {
         onSave={handleSaveWage}
         initialData={editingWage}
         employees={employees}
-        projects={projects}
+        projects={enhancedProjects}
         nextSuggestedId={nextSuggestedWageId}
       />
 
@@ -1303,7 +1323,7 @@ function ConstructionApp() {
         }}
         onSave={handleSaveExpense}
         initialData={editingExpense}
-        projects={projects}
+        projects={enhancedProjects}
         nextSuggestedId={nextSuggestedExpenseId}
       />
 

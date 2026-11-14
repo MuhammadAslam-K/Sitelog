@@ -16,7 +16,8 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { MaterialTable } from './MaterialTable.jsx';
-import { formatIndianCurrency, formatIndianCompact } from '../../utils/formatters.js';
+import { DateInput } from '../common/DateInput.jsx';
+import { formatIndianCurrency, formatIndianCompact, formatDate } from '../../utils/formatters.js';
 
 export function DailyMaterialsList({
   materials = [],
@@ -116,7 +117,7 @@ export function DailyMaterialsList({
     const headers = ['Material ID', 'Date', 'Project ID', 'Project Name', 'Item', 'Quantity', 'Agent/Supplier', 'Amount (INR)', 'Vehicle No', 'Challan No', 'Status', 'Notes'];
     const rows = filteredMaterials.map((m) => [
       m.materialId || '',
-      m.date || '',
+      formatDate(m.date),
       m.projectId || '',
       `"${(m.projectName || '').replace(/"/g, '""')}"`,
       `"${(m.item || '').replace(/"/g, '""')}"`,
@@ -250,7 +251,7 @@ export function DailyMaterialsList({
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           {/* Search */}
           <div className="lg:col-span-2 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
@@ -296,21 +297,23 @@ export function DailyMaterialsList({
           </div>
 
           {/* Date Range Inputs */}
-          <div className="flex items-center gap-1.5">
-            <input
-              type="date"
+          <div className="lg:col-span-2 flex items-center gap-1.5">
+            <DateInput
               value={fromDate}
+              max={toDate || undefined}
               onChange={(e) => setFromDate(e.target.value)}
               title="From Date"
-              className="w-1/2 px-2 py-2 text-[11px] rounded-xl border border-[#E2E8F0] bg-slate-50/50 text-[#172B4D] focus:bg-white focus:outline-none focus:border-[#0F8B78]"
+              wrapperClassName="w-1/2"
+              className="w-full px-2 py-2 text-[11px] rounded-xl border border-[#E2E8F0] bg-slate-50/50 text-[#172B4D] peer-focus:bg-white peer-focus:border-[#0F8B78]"
             />
             <span className="text-[#64748B] text-xs">to</span>
-            <input
-              type="date"
+            <DateInput
               value={toDate}
+              min={fromDate || undefined}
               onChange={(e) => setToDate(e.target.value)}
               title="To Date"
-              className="w-1/2 px-2 py-2 text-[11px] rounded-xl border border-[#E2E8F0] bg-slate-50/50 text-[#172B4D] focus:bg-white focus:outline-none focus:border-[#0F8B78]"
+              wrapperClassName="w-1/2"
+              className="w-full px-2 py-2 text-[11px] rounded-xl border border-[#E2E8F0] bg-slate-50/50 text-[#172B4D] peer-focus:bg-white peer-focus:border-[#0F8B78]"
             />
           </div>
         </div>

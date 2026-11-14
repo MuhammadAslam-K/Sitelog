@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ArrowUpDown, 
   ArrowUp, 
@@ -11,6 +11,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { StatusBadge, TagBadge } from '../common/Badge.jsx';
+import { TablePagination } from '../common/TablePagination.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 
 export function ProjectTable({
@@ -23,6 +24,17 @@ export function ProjectTable({
   searchQuery = '',
   onClearFilters
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.max(1, Math.ceil(projects.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedProjects = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return projects.slice(start, start + pageSize);
+  }, [projects, safeCurrentPage, pageSize]);
+
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
       return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#172B4D] transition-colors ml-1" />;
@@ -105,7 +117,7 @@ export function ProjectTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E2E8F0] text-xs">
-            {projects.map((project) => (
+            {paginatedProjects.map((project) => (
               <tr
                 key={project.id || project.projectId}
                 onClick={() => onViewProject(project)}
@@ -218,10 +230,21 @@ export function ProjectTable({
         </table>
       </div>
 
-      {/* Table Footer with Summary Count */}
-      <div className="px-6 py-3 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
-        <span>
-          Showing <strong className="text-[#172B4D] font-semibold">{projects.length}</strong> project{projects.length === 1 ? '' : 's'} (Formatted in Indian standard numbering system: ₹)
+      {/* Table Pagination Component */}
+      <TablePagination
+        currentPage={safeCurrentPage}
+        totalItems={projects.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[10, 25, 50]}
+        itemName="projects"
+      />
+
+      {/* Table Legend */}
+      <div className="px-6 py-2.5 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
+        <span className="text-[11px]">
+          Formatted in Indian standard numbering system (₹ Lakhs & Crores)
         </span>
         <div className="flex items-center gap-4 text-[11px]">
           <span className="flex items-center gap-1">
