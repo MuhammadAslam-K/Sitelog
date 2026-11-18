@@ -20,6 +20,11 @@
           "type": "string",
           "description": "Local governing body administering the contract",
           "enum": [
+            "Nenmani Gramam panchayath",
+            "Ambalavayal Gramam panchayath",
+            "Noolpuza Gramam panchayath",
+            "Block Office",
+            "Sub-work",
             "Grama Panchayat",
             "Block Panchayat",
             "District Panchayat",

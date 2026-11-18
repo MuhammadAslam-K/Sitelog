@@ -289,7 +289,7 @@ export function DailyWageFormModal({
                 <option value="">-- Select Worker --</option>
                 {employees.map((emp) => (
                   <option key={emp.employeeId} value={emp.employeeId}>
-                    {emp.name} ({emp.role} • {emp.employeeId} • ₹{emp.dailyWageRate ?? 1000}/day)
+                    {emp.name} ({emp.role})
                   </option>
                 ))}
               </select>

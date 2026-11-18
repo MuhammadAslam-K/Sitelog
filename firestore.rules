@@ -37,9 +37,24 @@ service cloud.firestore {
              data.projectName.size() >= 2 &&
              data.projectName.size() <= 150 &&
              data.localBody is string &&
-             data.localBody in ['Grama Panchayat', 'Block Panchayat', 'District Panchayat', 'Municipality', 'Corporation', 'Other'] &&
+             data.localBody.size() >= 2 &&
+             data.localBody.size() <= 120 &&
+             data.localBody in [
+               'Nenmani Gramam panchayath',
+               'Ambalavayal Gramam panchayath',
+               'Noolpuza Gramam panchayath',
+               'Block Office',
+               'Sub-work',
+               'Grama Panchayat',
+               'Block Panchayat',
+               'District Panchayat',
+               'Municipality',
+               'Corporation',
+               'Other'
+             ] &&
              data.workType is string &&
-             data.workType in ['Tarring', 'Road Construction', 'Road Maintenance', 'Drainage Work', 'Concrete Road', 'Other'] &&
+             data.workType.size() >= 1 &&
+             data.workType.size() <= 100 &&
              data.startDate is string &&
              data.startDate.size() <= 30 &&
              data.contractValue is number &&
