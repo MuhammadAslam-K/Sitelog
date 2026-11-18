@@ -5,6 +5,71 @@
  */
 
 /**
+ * Calculates the true remaining payable balance for a single daily wage entry.
+ * - Handles over-advances (advance > wages, or advance on leave) so excess cash
+ *   always offsets other pending days even if status was auto-set to 'Paid'.
+ * - When status is 'Paid' and advance <= wages (or over-advance was explicitly settled),
+ *   the remaining payable balance is strictly 0.
+ * @param {Object} entry
+ * @returns {number}
+ */
+export function getWagePayableBalance(entry) {
+  if (!entry) return 0;
+  const isLeave = entry.attendance === 'Absent / On Leave';
+  const wages = isLeave ? 0 : (Number(entry.wages) || 0);
+  const advance = Number(entry.advance) || 0;
+  const status = entry.status;
+
+  // Over-advance exists whenever cash disbursed exceeds wages earned for that shift
+  const isOverAdvance = advance > wages;
+
+  if (status === 'Paid') {
+    if (isOverAdvance && !entry.overAdvanceSettled) {
+      return Math.round((wages - advance) * 100) / 100;
+    }
+    return 0;
+  }
+
+  if (isLeave) {
+    return -advance;
+  }
+
+  const rawBalance = entry.balance !== undefined ? Number(entry.balance) : (wages - advance);
+  if (!status && rawBalance <= 0 && wages > 0 && !isOverAdvance) {
+    return 0;
+  }
+  return Math.round((wages - advance) * 100) / 100;
+}
+
+/**
+ * Calculates the total money disbursed/paid out for a single daily wage entry.
+ * - Uses `settledPaidAmount` when explicitly batch-settled alongside an over-advance offset.
+ * - When status is 'Paid', returns Math.max(wages, advance) so over-advances count full cash paid.
+ * - When 'Pending' / 'Partial' / 'Advance on Leave', returns the advance disbursed.
+ * @param {Object} entry
+ * @returns {number}
+ */
+export function getWagePaidAmount(entry) {
+  if (!entry) return 0;
+  if (typeof entry.settledPaidAmount === 'number' && !isNaN(entry.settledPaidAmount)) {
+    return entry.settledPaidAmount;
+  }
+
+  const isLeave = entry.attendance === 'Absent / On Leave';
+  const wages = isLeave ? 0 : (Number(entry.wages) || 0);
+  const advance = Number(entry.advance) || 0;
+  const status = entry.status;
+
+  if (isLeave) {
+    return advance;
+  }
+  if (status === 'Paid') {
+    return Math.max(wages, advance);
+  }
+  return advance;
+}
+
+/**
  * Calculates live wage balances for an employee from their daily wage entries
  * @param {Object} employee - The employee document
  * @param {Array} dailyWageEntries - All daily wage entries from the database
@@ -54,17 +119,17 @@ export function calculateEmployeeWageReflection(employee, dailyWageEntries = [])
   });
 
   sortedEntries.forEach((entry) => {
-    const wages = Number(entry.wages) || 0;
-    const advance = Number(entry.advance) || 0;
-    const balance = Number(entry.balance) !== undefined ? Number(entry.balance) : (wages - advance);
     const isLeave = entry.attendance === 'Absent / On Leave';
-    
+    const wages = isLeave ? 0 : (Number(entry.wages) || 0);
+    const advance = Number(entry.advance) || 0;
+    const rawBalance = wages - advance;
+
     // Determine effective status
     let status = entry.status;
     if (!status) {
       if (isLeave) {
         status = advance > 0 ? 'Advance on Leave' : 'Pending';
-      } else if (balance <= 0 && wages > 0) {
+      } else if (rawBalance === 0 && wages > 0) {
         status = 'Paid';
       } else if (advance > 0) {
         status = 'Partial';
@@ -77,32 +142,9 @@ export function calculateEmployeeWageReflection(employee, dailyWageEntries = [])
       statusBreakdown[status]++;
     }
 
-    if (isLeave) {
-      // Absent worker scenario: ₹0 wages earned, but advance is cash paid out
-      totalPaid += advance;
-      if (status !== 'Paid') {
-        netPending -= advance; // Reduces pending wages liability or creates advance owed
-      }
-    } else if (status === 'Paid') {
-      // Wage has been fully disbursed/settled
-      totalEarned += wages;
-      totalPaid += wages;
-      // 0 remains pending for this shift
-    } else if (status === 'Pending') {
-      // No advance paid, entire earned wage is pending
-      totalEarned += wages;
-      netPending += wages;
-    } else if (status === 'Partial') {
-      // Partial status: advance was paid, remaining balance is pending
-      totalEarned += wages;
-      totalPaid += advance;
-      netPending += balance;
-    } else {
-      // Fallback
-      totalEarned += wages;
-      totalPaid += advance;
-      netPending += balance;
-    }
+    totalEarned += wages;
+    totalPaid += getWagePaidAmount(entry);
+    netPending += getWagePayableBalance(entry);
   });
 
   const pendingWages = Math.max(0, netPending);
@@ -120,54 +162,3 @@ export function calculateEmployeeWageReflection(employee, dailyWageEntries = [])
     hasLiveEntries: true
   };
 }
-
-/**
- * Calculates the true remaining payable balance for a single daily wage entry.
- * When status is 'Paid', the remaining payable balance is strictly 0.
- * @param {Object} entry
- * @returns {number}
- */
-export function getWagePayableBalance(entry) {
-  if (!entry) return 0;
-  const status = entry.status;
-  if (status === 'Paid') {
-    return 0;
-  }
-  const wages = Number(entry.wages) || 0;
-  const advance = Number(entry.advance) || 0;
-  const isLeave = entry.attendance === 'Absent / On Leave';
-
-  if (isLeave) {
-    return status === 'Paid' ? 0 : -advance;
-  }
-
-  const rawBalance = entry.balance !== undefined ? Number(entry.balance) : (wages - advance);
-  if (!status && rawBalance <= 0 && wages > 0) {
-    return 0;
-  }
-  return rawBalance;
-}
-
-/**
- * Calculates the total money disbursed/paid out for a single daily wage entry.
- * When status is 'Paid', the full wage has been paid (advances + final settlement).
- * When status is 'Partial' or unpaid with advance, only the advance was paid.
- * @param {Object} entry
- * @returns {number}
- */
-export function getWagePaidAmount(entry) {
-  if (!entry) return 0;
-  const wages = Number(entry.wages) || 0;
-  const advance = Number(entry.advance) || 0;
-  const isLeave = entry.attendance === 'Absent / On Leave';
-  const status = entry.status;
-
-  if (isLeave) {
-    return advance;
-  }
-  if (status === 'Paid') {
-    return wages > 0 ? wages : advance;
-  }
-  return advance;
-}
-

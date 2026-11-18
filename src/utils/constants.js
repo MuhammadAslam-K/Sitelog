@@ -3,12 +3,11 @@
  */
 
 export const LOCAL_BODIES = [
-  'Grama Panchayat',
-  'Block Panchayat',
-  'District Panchayat',
-  'Municipality',
-  'Corporation',
-  'Other'
+  'Nenmani Gramam panchayath',
+  'Ambalavayal Gramam panchayath',
+  'Noolpuza Gramam panchayath',
+  'Block Office',
+  'Sub-work'
 ];
 
 export const WORK_TYPES = [

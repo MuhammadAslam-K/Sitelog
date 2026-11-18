@@ -47,6 +47,7 @@ import {
   updateDailyWage,
   deleteDailyWage,
   settleDailyWage,
+  settleEmployeeWageBatch,
   seedSampleDailyWagesIfEmpty
 } from './firebase/wageService.js';
 import {
@@ -672,6 +673,31 @@ function ConstructionApp() {
     }
   };
 
+  const handleSettleWageBatch = async (entries = [], netPayable = 0) => {
+    if (!currentUser) {
+      showToast('401 Unauthorized: Session required.', 'error', 'Authentication Error');
+      return;
+    }
+    if (!canEditModule('wages')) {
+      showToast('403 Forbidden: Insufficient permissions to settle wage payments.', 'error', 'Permission Denied');
+      return;
+    }
+    if (!entries || entries.length === 0) return;
+    try {
+      await settleEmployeeWageBatch(entries, currentUser);
+      const empName = entries[0]?.employeeName || 'worker';
+      showToast(
+        `Closed ${entries.length} muster entries for ${empName} (Final balance settled: ₹${Math.round(netPayable)}).`,
+        'success',
+        'Labour Account Closed'
+      );
+    } catch (error) {
+      console.error('Failed to batch settle wages:', error);
+      showToast('Error closing selected wage entries.', 'error', 'Operation Failed');
+      throw error;
+    }
+  };
+
   const handleSeedDailyWages = async () => {
     if (!currentUser) {
       showToast('401 Unauthorized: Authentication required.', 'error', 'Authentication Error');
@@ -1196,6 +1222,7 @@ function ConstructionApp() {
           onEditWage={canEditModule('wages') ? handleOpenEditWageModal : null}
           onDeleteWage={canEditModule('wages') ? handleOpenDeleteWageModal : null}
           onSettleWage={canEditModule('wages') ? handleSettleWage : null}
+          onSettleWageBatch={canEditModule('wages') ? handleSettleWageBatch : null}
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
         />

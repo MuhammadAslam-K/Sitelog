@@ -16,10 +16,12 @@ import {
   onSnapshot,
   query,
   where,
-  orderBy
+  orderBy,
+  writeBatch,
+  deleteField
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
-import { getWagePaidAmount } from '../utils/wageCalculator.js';
+import { getWagePaidAmount, getWagePayableBalance } from '../utils/wageCalculator.js';
 
 const WAGES_COLLECTION = 'dailyWages';
 const EMPLOYEES_COLLECTION = 'employees';
@@ -100,28 +102,12 @@ export async function syncEmployeeWages(employeeId) {
 
     wageSnap.docs.forEach((d) => {
       const entry = d.data();
-      const wages = Number(entry.wages) || 0;
-      const advance = Number(entry.advance) || 0;
-      const balance = Number(entry.balance) !== undefined ? Number(entry.balance) : (wages - advance);
       const isLeave = entry.attendance === 'Absent / On Leave';
-      const status = entry.status;
+      const wages = isLeave ? 0 : (Number(entry.wages) || 0);
 
-      if (isLeave) {
-        totalPaid += advance;
-        if (status !== 'Paid') {
-          netPending -= advance;
-        }
-      } else if (status === 'Paid') {
-        totalEarned += wages;
-        totalPaid += wages;
-      } else if (status === 'Pending') {
-        totalEarned += wages;
-        netPending += wages;
-      } else {
-        totalEarned += wages;
-        totalPaid += advance;
-        netPending += balance;
-      }
+      totalEarned += wages;
+      totalPaid += getWagePaidAmount(entry);
+      netPending += getWagePayableBalance(entry);
     });
 
     const pendingWages = Math.max(0, Math.round(netPending * 100) / 100);
@@ -209,7 +195,7 @@ export async function createDailyWage(wageData, user = null) {
     if (!status) {
       if (attendance === 'Absent / On Leave') {
         status = advance > 0 ? 'Advance on Leave' : 'Pending';
-      } else if (balance <= 0) {
+      } else if (balance === 0 && wages > 0) {
         status = 'Paid';
       } else if (advance > 0) {
         status = 'Partial';
@@ -281,7 +267,7 @@ export async function updateDailyWage(wageId, wageData, user = null) {
     if (!status) {
       if (attendance === 'Absent / On Leave') {
         status = advance > 0 ? 'Advance on Leave' : 'Pending';
-      } else if (balance <= 0) {
+      } else if (balance === 0 && wages > 0) {
         status = 'Paid';
       } else if (advance > 0) {
         status = 'Partial';
@@ -303,6 +289,8 @@ export async function updateDailyWage(wageId, wageData, user = null) {
       balance,
       status,
       notes: wageData.notes?.trim() || '',
+      settledPaidAmount: deleteField(),
+      overAdvanceSettled: deleteField(),
       updatedAt: new Date().toISOString()
     };
 
@@ -354,6 +342,98 @@ export async function settleDailyWage(wageId, user = null) {
     }
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${WAGES_COLLECTION}/${wageId}`);
+    throw error;
+  }
+}
+
+/**
+ * Settles & closes a batch of wage entries for an employee (e.g., weekly Saturday closing).
+ * Properly absorbs any excess advances (advance > wages or leave advances) against pending
+ * shift wages so total paid equals net wages earned and remaining payable balance becomes 0.
+ * @param {Array<Object>} entries
+ * @param {Object|null} user
+ */
+export async function settleEmployeeWageBatch(entries = [], user = null) {
+  if (!entries || entries.length === 0) return;
+
+  try {
+    const sorted = [...entries].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    const settledBy = user?.email || 'Supervisor';
+
+    // 1. Collect excess advance pool from entries where advance > earned wages
+    let excessAdvancePool = 0;
+    const overAdvanceIds = new Set();
+
+    sorted.forEach((entry) => {
+      const bal = getWagePayableBalance(entry);
+      if (bal < 0) {
+        overAdvanceIds.add(entry.id || entry.wageId);
+        excessAdvancePool += Math.abs(bal);
+      }
+    });
+
+    const affectedEmployeeIds = new Set();
+    const affectedProjectIds = new Set();
+
+    sorted.forEach((entry) => {
+      const docId = entry.id || entry.wageId;
+      if (!docId) return;
+
+      if (entry.employeeId) affectedEmployeeIds.add(entry.employeeId);
+      if (entry.projectId && entry.projectId !== 'GENERAL') affectedProjectIds.add(entry.projectId);
+
+      const docRef = doc(db, WAGES_COLLECTION, docId);
+      const isLeave = entry.attendance === 'Absent / On Leave';
+      const wages = isLeave ? 0 : (Number(entry.wages) || 0);
+      const advance = Number(entry.advance) || 0;
+
+      if (overAdvanceIds.has(docId)) {
+        // Mark over-advance as recovered/settled; preserve full cash paid (advance)
+        batch.update(docRef, {
+          status: 'Paid',
+          overAdvanceSettled: true,
+          settledPaidAmount: advance,
+          settledBy,
+          updatedAt: now
+        });
+      } else {
+        const remainingToPay = Math.max(0, getWagePayableBalance(entry));
+        if (remainingToPay > 0) {
+          const coveredByExcess = Math.min(remainingToPay, excessAdvancePool);
+          excessAdvancePool = Math.round((excessAdvancePool - coveredByExcess) * 100) / 100;
+          const cashPaidAtClose = Math.round((remainingToPay - coveredByExcess) * 100) / 100;
+          const totalPaidForShift = Math.round((advance + cashPaidAtClose) * 100) / 100;
+
+          batch.update(docRef, {
+            status: 'Paid',
+            settledPaidAmount: totalPaidForShift,
+            settledBy,
+            updatedAt: now
+          });
+        } else if (entry.status !== 'Paid') {
+          batch.update(docRef, {
+            status: 'Paid',
+            settledPaidAmount: Math.max(wages, advance),
+            settledBy,
+            updatedAt: now
+          });
+        }
+      }
+    });
+
+    await batch.commit();
+
+    // Sync employee & project totals
+    for (const empId of affectedEmployeeIds) {
+      await syncEmployeeWages(empId);
+    }
+    for (const projId of affectedProjectIds) {
+      await syncProjectLabourExpenses(projId);
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, WAGES_COLLECTION);
     throw error;
   }
 }

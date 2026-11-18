@@ -49,7 +49,10 @@ export function EmployeeFormModal({
         role: EMPLOYEE_ROLES.includes(initialData.role) ? initialData.role : 'Other',
         customRole: EMPLOYEE_ROLES.includes(initialData.role) ? '' : (initialData.role || ''),
         joiningDate: initialData.joiningDate || new Date().toISOString().split('T')[0],
-        dailyWageRate: initialData.dailyWageRate !== undefined ? String(initialData.dailyWageRate) : '1000',
+        dailyWageRate:
+          initialData.dailyWageRate !== undefined && initialData.dailyWageRate !== null
+            ? String(initialData.dailyWageRate)
+            : '1000',
         status: initialData.status || 'Active',
         pendingWages: initialData.pendingWages !== undefined ? String(initialData.pendingWages) : '0',
         paidWages: initialData.paidWages !== undefined ? String(initialData.paidWages) : '0'
@@ -89,6 +92,10 @@ export function EmployeeFormModal({
 
     if (!formData.joiningDate) {
       errors.joiningDate = 'Date / Joining date is required';
+    }
+
+    if (formData.dailyWageRate === '' || isNaN(currentRate) || currentRate < 0) {
+      errors.dailyWageRate = 'Valid non-negative daily wage rate is required';
     }
 
     if (formData.role === 'Other' && !formData.customRole.trim()) {
@@ -245,7 +252,35 @@ export function EmployeeFormModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Daily Wage Rate */}
+          <div>
+            <label className="block text-xs font-semibold text-[#172B4D] mb-1">
+              Daily Wage Rate (₹) <span className="text-[#DC5353]">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g. 1000"
+                value={formData.dailyWageRate}
+                onChange={(e) => setFormData({ ...formData, dailyWageRate: e.target.value })}
+                className={`w-full pl-7 pr-3 py-2 text-xs sm:text-sm font-mono tabular-nums text-[#172B4D] bg-white rounded-xl border ${
+                  validationErrors.dailyWageRate ? 'border-rose-400 bg-rose-50/40' : 'border-[#E2E8F0]'
+                } focus:border-[#0F8B78] focus:outline-hidden focus:ring-2 focus:ring-[#0F8B78]/15`}
+              />
+            </div>
+            {validationErrors.dailyWageRate ? (
+              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.dailyWageRate}</p>
+            ) : (
+              <p className="text-[10px] text-[#64748B] mt-1">
+                Auto-fills in Daily Wages
+              </p>
+            )}
+          </div>
+
           {/* Joining Date */}
           <div>
             <label className="block text-xs font-semibold text-[#172B4D] mb-1">

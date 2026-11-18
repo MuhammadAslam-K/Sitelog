@@ -79,13 +79,8 @@ export function ProjectsList({
         }
 
         // Local Body filter
-        if (selectedLocalBody !== 'ALL') {
-          if (selectedLocalBody === 'Other') {
-            const isStandard = LOCAL_BODIES.slice(0, -1).includes(project.localBody);
-            if (isStandard) return false;
-          } else if (project.localBody !== selectedLocalBody) {
-            return false;
-          }
+        if (selectedLocalBody !== 'ALL' && project.localBody !== selectedLocalBody) {
+          return false;
         }
 
         // Work Type filter

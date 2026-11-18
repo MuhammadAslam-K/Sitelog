@@ -208,19 +208,24 @@ export function EmployeeTable({
 
                   {/* Role */}
                   <td className="py-3.5 px-3.5 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${
-                      emp.role === 'Supervisor'
-                        ? 'bg-purple-50 text-purple-800 border border-purple-200'
-                        : emp.role === 'Driver'
-                        ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                        : emp.role === 'Site Engineer'
-                        ? 'bg-teal-50 text-[#0F8B78] border border-teal-200'
-                        : emp.role === 'Heavy Machinery Operator' || emp.role === 'Paver Operator'
-                        ? 'bg-amber-50 text-amber-900 border border-amber-200'
-                        : 'bg-slate-100 text-[#172B4D] border border-[#E2E8F0]'
-                    }`}>
-                      {emp.role}
-                    </span>
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${
+                        emp.role === 'Supervisor'
+                          ? 'bg-purple-50 text-purple-800 border border-purple-200'
+                          : emp.role === 'Driver'
+                          ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                          : emp.role === 'Site Engineer'
+                          ? 'bg-teal-50 text-[#0F8B78] border border-teal-200'
+                          : emp.role === 'Heavy Machinery Operator' || emp.role === 'Paver Operator'
+                          ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                          : 'bg-slate-100 text-[#172B4D] border border-[#E2E8F0]'
+                      }`}>
+                        {emp.role}
+                      </span>
+                      <span className="text-[10px] text-[#64748B] font-mono">
+                        Rate: {formatIndianCurrency(emp.dailyWageRate !== undefined ? emp.dailyWageRate : 1000)}/day
+                      </span>
+                    </div>
                   </td>
 
                   {/* Date / Joining Date */}

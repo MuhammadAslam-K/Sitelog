@@ -46,8 +46,8 @@ export function ProjectFormModal({
       setFormData({
         projectId: initialData.projectId || '',
         projectName: initialData.projectName || '',
-        localBody: LOCAL_BODIES.includes(initialData.localBody) ? initialData.localBody : 'Other',
-        customLocalBody: LOCAL_BODIES.includes(initialData.localBody) ? '' : (initialData.localBody || ''),
+        localBody: initialData.localBody || LOCAL_BODIES[0],
+        customLocalBody: '',
         workType: WORK_TYPES.includes(initialData.workType) ? initialData.workType : 'Other',
         customWorkType: WORK_TYPES.includes(initialData.workType) ? '' : (initialData.workType || ''),
         startDate: initialData.startDate || new Date().toISOString().split('T')[0],
@@ -226,6 +226,9 @@ export function ProjectFormModal({
                 {LOCAL_BODIES.map((lb) => (
                   <option key={lb} value={lb}>{lb}</option>
                 ))}
+                {isEditMode && formData.localBody && !LOCAL_BODIES.includes(formData.localBody) && formData.localBody !== 'Other' && (
+                  <option value={formData.localBody}>{formData.localBody}</option>
+                )}
               </select>
 
               {formData.localBody === 'Other' && (

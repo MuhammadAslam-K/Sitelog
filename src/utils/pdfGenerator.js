@@ -9,6 +9,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatDate } from './formatters.js';
+import { getWagePayableBalance } from './wageCalculator.js';
 
 /**
  * Formats a date string (YYYY-MM-DD or ISO) to DD-MM-YYYY
@@ -57,8 +58,7 @@ export function generateWageSlipPDF(employeeName, entries = [], meta = {}) {
 
     const w = Number(entry.wages) || 0;
     const adv = Number(entry.advance) || 0;
-    const isPaid = entry.status === 'Paid';
-    const bal = isPaid ? 0 : (entry.balance !== undefined ? Number(entry.balance) : (w - adv));
+    const bal = getWagePayableBalance(entry);
 
     totalWages += w;
     totalAdvance += adv;
@@ -91,8 +91,9 @@ export function generateWageSlipPDF(employeeName, entries = [], meta = {}) {
     const wtText = item.attendance || 'Present';
     const wagesStr = item.wages !== undefined && Number(item.wages) > 0 ? String(item.wages) : (item.attendance === 'Absent / On Leave' ? '0' : String(item.wages || 0));
     const advStr = item.advance !== undefined && Number(item.advance) > 0 ? String(item.advance) : '';
-    const isItemPaid = item.status === 'Paid';
-    const balStr = isItemPaid ? '0 (Paid)' : (item.balance !== undefined ? String(item.balance) : String((Number(item.wages) || 0) - (Number(item.advance) || 0)));
+    const rowBal = getWagePayableBalance(item);
+    const isItemSettled = item.status === 'Paid' && rowBal === 0;
+    const balStr = isItemSettled ? '0 (Paid)' : String(rowBal);
 
     tableBody.push([dateStr, wtText, wagesStr, advStr, balStr]);
   });
@@ -252,8 +253,8 @@ export function generateConsolidatedWagesPDF(wages = [], filterTitle = 'Daily Wa
   const rows = wages.map((w) => {
     const earned = Number(w.wages) || 0;
     const adv = Number(w.advance) || 0;
-    const isRowPaid = w.status === 'Paid';
-    const bal = isRowPaid ? 0 : (w.balance !== undefined ? Number(w.balance) : (earned - adv));
+    const bal = getWagePayableBalance(w);
+    const isRowSettled = w.status === 'Paid' && bal === 0;
 
     totalWages += earned;
     totalAdvance += adv;
@@ -267,7 +268,7 @@ export function generateConsolidatedWagesPDF(wages = [], filterTitle = 'Daily Wa
       w.attendance || 'Present',
       `₹${earned}`,
       `₹${adv}`,
-      isRowPaid ? '₹0 (Paid)' : `₹${bal}`,
+      isRowSettled ? '₹0 (Paid)' : `₹${bal}`,
       w.status || 'Pending'
     ];
   });

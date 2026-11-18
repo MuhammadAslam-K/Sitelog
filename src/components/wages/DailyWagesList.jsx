@@ -32,6 +32,7 @@ export function DailyWagesList({
   onEditWage,
   onDeleteWage,
   onSettleWage,
+  onSettleWageBatch,
   searchQuery = '',
   onSearchChange
 }) {
@@ -293,8 +294,8 @@ export function DailyWagesList({
   const totalAdvancesGiven = calculationPool.reduce((sum, w) => sum + (Number(w.advance) || 0), 0);
   const totalPaidAmount = calculationPool.reduce((sum, w) => sum + getWagePaidAmount(w), 0);
   const netBalancePayable = calculationPool.reduce((sum, w) => sum + getWagePayableBalance(w), 0);
-  const settledCount = calculationPool.filter((w) => w.status === 'Paid').length;
-  const pendingCount = calculationPool.filter((w) => w.status !== 'Paid').length;
+  const settledCount = calculationPool.filter((w) => w.status === 'Paid' && getWagePayableBalance(w) === 0).length;
+  const pendingCount = calculationPool.length - settledCount;
   const absentAdvancesCount = calculationPool.filter((w) => w.attendance === 'Absent / On Leave' && Number(w.advance) > 0).length;
 
   return (
@@ -558,6 +559,7 @@ export function DailyWagesList({
         onEditWage={onEditWage}
         onDeleteWage={onDeleteWage}
         onSettleWage={onSettleWage}
+        onSettleWageBatch={onSettleWageBatch}
         onDownloadSlip={handleOpenPdfModal}
         searchQuery={searchQuery}
         onClearFilters={isFilterActive ? clearAllFilters : null}
@@ -577,6 +579,7 @@ export function DailyWagesList({
           employees={employees}
           initialEmployeeId={pdfTargetEmployeeId}
           initialSelectedWageIds={pdfTargetWageIds}
+          onSettleBatch={onSettleWageBatch}
         />
       )}
     </div>

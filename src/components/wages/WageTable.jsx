@@ -29,6 +29,7 @@ export function WageTable({
   onEditWage,
   onDeleteWage,
   onSettleWage,
+  onSettleWageBatch,
   onDownloadSlip,
   searchQuery = '',
   onClearFilters,
@@ -167,7 +168,7 @@ export function WageTable({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
+          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end flex-wrap">
             <button
               type="button"
               onClick={onClearSelection}
@@ -176,6 +177,20 @@ export function WageTable({
               <X className="w-3.5 h-3.5" />
               <span>Deselect All</span>
             </button>
+
+            {onSettleWageBatch && selectedInfo.singleEmployee && selectedInfo.totalBal >= 0 && selectedInfo.entries.some((e) => e.status !== 'Paid' || getWagePayableBalance(e) !== 0) && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await onSettleWageBatch(selectedInfo.entries, selectedInfo.totalBal);
+                  if (onClearSelection) onClearSelection();
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-[#172B4D] bg-amber-300 hover:bg-amber-200 shadow-2xs transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Close & Settle (₹{selectedInfo.totalBal})</span>
+              </button>
+            )}
 
             {onCreatePdfForSelected && (
               <button
@@ -261,6 +276,8 @@ export function WageTable({
                     ? 'Partial'
                     : 'Pending'
                 );
+                const rowPayableBal = getWagePayableBalance(item);
+                const isFullySettled = effectiveStatus === 'Paid' && rowPayableBal === 0;
 
                 return (
                   <tr
@@ -346,8 +363,21 @@ export function WageTable({
 
                     {/* Wages (₹) */}
                     <td className="py-3.5 px-3.5 text-right font-mono tabular-nums font-semibold text-[#172B4D] whitespace-nowrap">
-                      {item.wages > 0 ? (
-                        formatIndianCurrency(item.wages)
+                      {item.wages > 0 || item.attendance !== 'Absent / On Leave' ? (
+                        <div className="inline-flex items-center justify-end gap-1.5 group/wage">
+                          <span>{formatIndianCurrency(item.wages || 0)}</span>
+                          {onEditWage && (
+                            <button
+                              type="button"
+                              onClick={() => onEditWage(item)}
+                              title="Edit wage for this particular day only"
+                              className="p-1 rounded text-slate-400 hover:text-[#0F8B78] hover:bg-[#0F8B78]/10 transition-colors"
+                              aria-label="Edit day wage"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-slate-400 font-normal">₹0 (Leave)</span>
                       )}
@@ -366,7 +396,7 @@ export function WageTable({
 
                     {/* Balance Amount (₹) */}
                     <td className="py-3.5 px-3.5 text-right font-mono tabular-nums font-bold whitespace-nowrap">
-                      {effectiveStatus === 'Paid' ? (
+                      {isFullySettled ? (
                         <span 
                           className="inline-flex items-center gap-1 text-[#0F8B78] bg-[#0F8B78]/10 px-2 py-0.5 rounded border border-[#0F8B78]/25"
                           title={`Wage settled in full (Gross ${formatIndianCurrency(item.wages || 0)})`}
@@ -375,16 +405,16 @@ export function WageTable({
                           <span>₹0</span>
                           <span className="text-[10px] font-normal text-[#0F8B78]">(Paid)</span>
                         </span>
-                      ) : isNegativeBalance ? (
+                      ) : rowPayableBal < 0 ? (
                         <span 
                           className="text-[#DC5353] bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
-                          title="Worker was absent but granted advance cash"
+                          title={isAbsentWithAdvance ? 'Worker was absent but granted advance cash' : `Excess advance of ${formatIndianCurrency(Math.abs(rowPayableBal))} deducted from total payable`}
                         >
-                          -{formatIndianCurrency(Math.abs(item.balance))} (Adv)
+                          -{formatIndianCurrency(Math.abs(rowPayableBal))} (Adv)
                         </span>
                       ) : (
                         <span className="text-[#0F8B78]">
-                          {formatIndianCurrency(item.balance)}
+                          {formatIndianCurrency(rowPayableBal)}
                         </span>
                       )}
                     </td>

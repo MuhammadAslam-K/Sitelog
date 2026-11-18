@@ -16,6 +16,7 @@ import {
 import { Modal } from '../common/Modal.jsx';
 import { TablePagination } from '../common/TablePagination.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
+import { getWagePayableBalance } from '../../utils/wageCalculator.js';
 import { generateWageSlipPDF } from '../../utils/pdfGenerator.js';
 
 export function EmployeeMusterModal({
@@ -151,6 +152,8 @@ export function EmployeeMusterModal({
                 {paginatedEntries.map((item) => {
                   const isLeave = item.attendance === 'Absent / On Leave';
                   const effectiveStatus = item.status || (isLeave ? 'Advance on Leave' : item.advance > 0 ? (item.balance > 0 ? 'Partial' : 'Paid') : 'Pending');
+                  const rowBal = getWagePayableBalance(item);
+                  const isRowSettled = effectiveStatus === 'Paid' && rowBal === 0;
 
                   return (
                     <tr key={item.id || item.wageId} className="hover:bg-slate-50/80 transition-colors">
@@ -193,14 +196,14 @@ export function EmployeeMusterModal({
                       </td>
 
                       <td className="py-2.5 px-3 text-right font-mono font-bold tabular-nums whitespace-nowrap">
-                        {effectiveStatus === 'Paid' ? (
+                        {isRowSettled ? (
                           <span className="text-[#0F8B78] bg-[#0F8B78]/10 px-1.5 py-0.5 rounded text-[11px]">
                             ₹0 (Paid)
                           </span>
-                        ) : (item.balance || 0) < 0 ? (
-                          <span className="text-[#DC5353]">-{formatIndianCurrency(Math.abs(item.balance))}</span>
+                        ) : rowBal < 0 ? (
+                          <span className="text-[#DC5353]">-{formatIndianCurrency(Math.abs(rowBal))}</span>
                         ) : (
-                          <span className="text-[#0F8B78]">{formatIndianCurrency(item.balance || 0)}</span>
+                          <span className="text-[#0F8B78]">{formatIndianCurrency(rowBal)}</span>
                         )}
                       </td>
 

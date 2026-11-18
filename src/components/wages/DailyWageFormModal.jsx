@@ -69,7 +69,10 @@ export function DailyWageFormModal({
     } else {
       const defaultEmp = activeEmployees[0] || null;
       const defaultProj = activeProjects[0] || null;
-      const defaultRate = defaultEmp ? String(defaultEmp.dailyWageRate || 1000) : '1000';
+      const defaultRate =
+        defaultEmp && defaultEmp.dailyWageRate !== undefined && defaultEmp.dailyWageRate !== null
+          ? String(defaultEmp.dailyWageRate)
+          : '1000';
 
       setFormData({
         wageId: nextSuggestedId || 'WAG-101',
@@ -89,24 +92,32 @@ export function DailyWageFormModal({
     setValidationErrors({});
   }, [initialData, nextSuggestedId, isOpen]);
 
+  // Helper to get employee's default rate for current attendance
+  const getRateForAttendance = (emp, attendanceVal) => {
+    const baseRate =
+      emp && emp.dailyWageRate !== undefined && emp.dailyWageRate !== null
+        ? Number(emp.dailyWageRate)
+        : 1000;
+    if (attendanceVal === 'Half Day') return Math.round(baseRate / 2);
+    if (attendanceVal === 'Absent / On Leave') return 0;
+    return baseRate;
+  };
+
   // When employee dropdown changes, auto-fill details and wage rate
   const handleEmployeeChange = (empId) => {
     const emp = employees.find((e) => e.employeeId === empId);
     if (!emp) return;
 
-    let wageForAttendance = emp.dailyWageRate || 1000;
-    if (formData.attendance === 'Half Day') {
-      wageForAttendance = Math.round(wageForAttendance / 2);
-    } else if (formData.attendance === 'Absent / On Leave') {
-      wageForAttendance = 0;
-    }
+    const wageForAttendance = getRateForAttendance(emp, formData.attendance);
+    const adv = parseFloat(formData.advance) || 0;
 
     setFormData((prev) => ({
       ...prev,
       employeeId: emp.employeeId,
       employeeName: emp.name,
       employeeRole: emp.role,
-      wages: String(wageForAttendance)
+      wages: String(wageForAttendance),
+      status: computeSuggestedStatus(prev.attendance, wageForAttendance, adv)
     }));
   };
 
@@ -129,28 +140,27 @@ export function DailyWageFormModal({
     }));
   };
 
+  const computeSuggestedStatus = (attendanceVal, wageNum, advNum) => {
+    if (attendanceVal === 'Absent / On Leave') {
+      return advNum > 0 ? 'Advance on Leave' : 'Pending';
+    }
+    if (wageNum > 0 && advNum === wageNum) {
+      return 'Paid';
+    }
+    if (advNum > 0) {
+      return 'Partial';
+    }
+    return 'Pending';
+  };
+
   // When attendance status changes (Present, Half Day, Absent)
   const handleAttendanceChange = (newStatus) => {
     const selectedEmp = employees.find((e) => e.employeeId === formData.employeeId);
-    const baseRate = selectedEmp ? Number(selectedEmp.dailyWageRate || 1000) : 1000;
+    const wageNum = getRateForAttendance(selectedEmp, newStatus);
+    const newWages = String(wageNum);
 
-    let newWages = '0';
-    let suggestedStatus = formData.status;
-
-    if (newStatus === 'Present') {
-      newWages = String(baseRate);
-      const adv = parseFloat(formData.advance) || 0;
-      suggestedStatus = adv >= baseRate ? 'Paid' : adv > 0 ? 'Partial' : 'Pending';
-    } else if (newStatus === 'Half Day') {
-      const halfRate = Math.round(baseRate / 2);
-      newWages = String(halfRate);
-      const adv = parseFloat(formData.advance) || 0;
-      suggestedStatus = adv >= halfRate ? 'Paid' : adv > 0 ? 'Partial' : 'Pending';
-    } else if (newStatus === 'Absent / On Leave') {
-      newWages = '0';
-      const adv = parseFloat(formData.advance) || 0;
-      suggestedStatus = adv > 0 ? 'Advance on Leave' : 'Pending';
-    }
+    const adv = parseFloat(formData.advance) || 0;
+    const suggestedStatus = computeSuggestedStatus(newStatus, wageNum, adv);
 
     setFormData((prev) => ({
       ...prev,
@@ -163,20 +173,8 @@ export function DailyWageFormModal({
   // When advance amount changes
   const handleAdvanceChange = (val) => {
     const adv = parseFloat(val) || 0;
-    const wage = parseFloat(formData.wages) || 0;
-    let suggestedStatus = formData.status;
-
-    if (formData.attendance === 'Absent / On Leave') {
-      suggestedStatus = adv > 0 ? 'Advance on Leave' : 'Pending';
-    } else {
-      if (adv >= wage && wage > 0) {
-        suggestedStatus = 'Paid';
-      } else if (adv > 0) {
-        suggestedStatus = 'Partial';
-      } else {
-        suggestedStatus = 'Pending';
-      }
-    }
+    const wage = formData.attendance === 'Absent / On Leave' ? 0 : (parseFloat(formData.wages) || 0);
+    const suggestedStatus = computeSuggestedStatus(formData.attendance, wage, adv);
 
     setFormData((prev) => ({
       ...prev,
@@ -189,6 +187,15 @@ export function DailyWageFormModal({
   const currentWage = parseFloat(formData.wages) || 0;
   const currentAdvance = parseFloat(formData.advance) || 0;
   const currentBalance = currentWage - currentAdvance;
+
+  const selectedEmployeeObj = employees.find((e) => e.employeeId === formData.employeeId);
+  const expectedDefaultWage = selectedEmployeeObj
+    ? getRateForAttendance(selectedEmployeeObj, formData.attendance)
+    : 1000;
+  const isCustomDayWage =
+    selectedEmployeeObj &&
+    formData.attendance !== 'Absent / On Leave' &&
+    currentWage !== expectedDefaultWage;
 
   const validate = () => {
     const errors = {};
@@ -282,7 +289,7 @@ export function DailyWageFormModal({
                 <option value="">-- Select Worker --</option>
                 {employees.map((emp) => (
                   <option key={emp.employeeId} value={emp.employeeId}>
-                    {emp.name} ({emp.role} • {emp.employeeId})
+                    {emp.name} ({emp.role} • {emp.employeeId} • ₹{emp.dailyWageRate ?? 1000}/day)
                   </option>
                 ))}
               </select>
@@ -379,26 +386,61 @@ export function DailyWageFormModal({
           {/* Wages */}
           <div>
             <label className="block text-xs font-semibold text-[#172B4D] mb-1">
-              Wages Earned (₹)
+              Wages Earned (₹) <span className="text-[10px] font-normal text-[#64748B]">(Editable for day)</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
               <input
                 type="number"
                 min="0"
-                step="50"
+                step="1"
                 disabled={formData.attendance === 'Absent / On Leave'}
                 value={formData.attendance === 'Absent / On Leave' ? '0' : formData.wages}
-                onChange={(e) => setFormData({ ...formData, wages: e.target.value })}
+                onChange={(e) => {
+                  const nextWages = e.target.value;
+                  const wageNum = parseFloat(nextWages) || 0;
+                  const adv = parseFloat(formData.advance) || 0;
+                  setFormData((prev) => ({
+                    ...prev,
+                    wages: nextWages,
+                    status: computeSuggestedStatus(prev.attendance, wageNum, adv)
+                  }));
+                }}
                 className={`w-full pl-7 pr-3 py-2 text-xs sm:text-sm font-mono tabular-nums text-[#172B4D] rounded-xl border ${
                   formData.attendance === 'Absent / On Leave'
                     ? 'bg-slate-100 text-slate-400 border-[#E2E8F0]'
+                    : isCustomDayWage
+                    ? 'border-blue-400 bg-blue-50/30 focus:border-[#0F8B78] focus:outline-hidden'
                     : 'border-[#E2E8F0] focus:border-[#0F8B78] focus:outline-hidden'
                 }`}
               />
             </div>
-            <p className="text-[10px] text-[#64748B] mt-1 font-mono tabular-nums">
-              {formData.attendance === 'Absent / On Leave' ? '₹0 (No work done)' : 'Earned for day shift'}
+            <p className="text-[10px] text-[#64748B] mt-1 font-mono tabular-nums flex items-center justify-between gap-1">
+              {formData.attendance === 'Absent / On Leave' ? (
+                <span>₹0 (No work done)</span>
+              ) : isCustomDayWage ? (
+                <>
+                  <span className="text-blue-700 font-sans font-semibold">
+                    Day override (Default: ₹{expectedDefaultWage})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const adv = parseFloat(formData.advance) || 0;
+                      setFormData((prev) => ({
+                        ...prev,
+                        wages: String(expectedDefaultWage),
+                        status: computeSuggestedStatus(prev.attendance, expectedDefaultWage, adv)
+                      }));
+                    }}
+                    className="text-[#0F8B78] hover:underline font-sans font-bold shrink-0"
+                  >
+                    Reset
+                  </button>
+                </>
+              ) : (
+                <span>Default rate for this worker</span>
+              )}
             </p>
           </div>
 
@@ -412,7 +454,7 @@ export function DailyWageFormModal({
               <input
                 type="number"
                 min="0"
-                step="50"
+                step="1"
                 placeholder="e.g. 300"
                 value={formData.advance}
                 onChange={(e) => handleAdvanceChange(e.target.value)}
@@ -441,7 +483,7 @@ export function DailyWageFormModal({
             </div>
             <p className="text-[10px] text-[#64748B] mt-1 font-mono tabular-nums">
               {currentBalance < 0
-                ? `Advance owed: ${formatIndianCurrency(Math.abs(currentBalance))}`
+                ? `Excess advance: ${formatIndianCurrency(Math.abs(currentBalance))} (deducts from total balance)`
                 : `Net payable: ${formatIndianCurrency(currentBalance)}`}
             </p>
           </div>

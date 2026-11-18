@@ -27,8 +27,10 @@ export function WageSlipPdfModal({
   wages = [],
   employees = [],
   initialEmployeeId = null,
-  initialSelectedWageIds = []
+  initialSelectedWageIds = [],
+  onSettleBatch = null
 }) {
+  const [isSettlingBatch, setIsSettlingBatch] = useState(false);
   // Unique list of employees
   const employeeOptions = useMemo(() => {
     const map = new Map();
@@ -195,6 +197,20 @@ export function WageSlipPdfModal({
     );
   };
 
+  const hasUnsettledInSelection = useMemo(() => {
+    return selectedEntries.some((e) => e.status !== 'Paid' || getWagePayableBalance(e) !== 0);
+  }, [selectedEntries]);
+
+  const handleSettleSelectedBatch = async () => {
+    if (!onSettleBatch || selectedEntries.length === 0 || stats.balance < 0) return;
+    setIsSettlingBatch(true);
+    try {
+      await onSettleBatch(selectedEntries, stats.balance);
+    } finally {
+      setIsSettlingBatch(false);
+    }
+  };
+
   const handleDownloadAllFiltered = () => {
     generateConsolidatedWagesPDF(wages, 'Consolidated Site Muster Roll');
   };
@@ -344,7 +360,8 @@ export function WageSlipPdfModal({
                 const att = entry.attendance || 'Present';
                 const wagesAmt = Number(entry.wages) || 0;
                 const advAmt = Number(entry.advance) || 0;
-                const balAmt = entry.balance !== undefined ? Number(entry.balance) : (wagesAmt - advAmt);
+                const balAmt = getWagePayableBalance(entry);
+                const isRowSettled = entry.status === 'Paid' && balAmt === 0;
 
                 return (
                   <label
@@ -402,8 +419,12 @@ export function WageSlipPdfModal({
                       )}
                       <div>
                         <span className="text-[10px] text-[#64748B] uppercase block font-sans">Bal</span>
-                        <span className="font-bold text-[#0F8B78]">
-                          {entry.status === 'Paid' ? '₹0 (Paid)' : `₹${balAmt}`}
+                        <span className={`font-bold ${balAmt < 0 ? 'text-[#DC5353]' : 'text-[#0F8B78]'}`}>
+                          {isRowSettled
+                            ? '₹0 (Paid)'
+                            : balAmt < 0
+                            ? `-₹${Math.abs(balAmt)}`
+                            : `₹${balAmt}`}
                         </span>
                       </div>
                     </div>
@@ -456,7 +477,10 @@ export function WageSlipPdfModal({
                 </thead>
                 <tbody className="divide-y border-b-2 border-[#172B4D] font-mono tabular-nums text-[11px]">
                   {selectedEntries.length > 0 ? (
-                    selectedEntries.map((row) => (
+                    selectedEntries.map((row) => {
+                      const rowBal = getWagePayableBalance(row);
+                      const isRowSettled = row.status === 'Paid' && rowBal === 0;
+                      return (
                       <tr key={row.id || row.wageId} className="hover:bg-slate-50">
                         <td className="border-r-2 border-[#172B4D] py-1.5 px-3 font-sans">
                           {row.date ? formatDate(row.date) : '-'}
@@ -470,11 +494,12 @@ export function WageSlipPdfModal({
                         <td className="border-r-2 border-[#172B4D] py-1.5 px-3 text-right">
                           {row.advance > 0 ? row.advance : ''}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-bold text-[#172B4D]">
-                          {row.balance !== undefined ? row.balance : 0}
+                        <td className={`py-1.5 px-3 text-right font-bold ${rowBal < 0 ? 'text-[#DC5353]' : 'text-[#172B4D]'}`}>
+                          {isRowSettled ? '0 (Paid)' : rowBal}
                         </td>
                       </tr>
-                    ))
+                    );
+                    })
                   ) : (
                     <tr>
                       <td colSpan={5} className="py-6 text-center text-amber-700 bg-amber-50/50 font-sans">
@@ -521,7 +546,7 @@ export function WageSlipPdfModal({
             Consolidated Muster Roll (All Records)
           </button>
 
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap">
             <button
               type="button"
               onClick={onClose}
@@ -529,6 +554,20 @@ export function WageSlipPdfModal({
             >
               Cancel
             </button>
+            {onSettleBatch && selectedEntries.length > 0 && hasUnsettledInSelection && stats.balance >= 0 && (
+              <button
+                type="button"
+                disabled={isSettlingBatch}
+                onClick={handleSettleSelectedBatch}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[#172B4D] bg-amber-100 hover:bg-amber-200 border border-amber-300 shadow-2xs transition-all disabled:opacity-50"
+                title="Close & settle these selected dates with advances adjusted"
+              >
+                <CheckCircle2 className="w-4 h-4 text-amber-800" />
+                <span>
+                  {isSettlingBatch ? 'Settling...' : `Close & Settle (${formatIndianCurrency(stats.balance)})`}
+                </span>
+              </button>
+            )}
             <button
               type="button"
               disabled={selectedEntries.length === 0}
