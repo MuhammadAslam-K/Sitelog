@@ -33,20 +33,20 @@ const ICON_MAP = {
 };
 
 export function Sidebar({ currentSection, onSelectSection, isMobileOpen, onCloseMobile }) {
-  const { currentUser, isSuperAdmin } = useAuth();
+  const { currentUser, isSuperAdmin, hasModuleAccess } = useAuth();
 
   const functionalItems = NAVIGATION_ITEMS.filter((item) => {
     if (!item.functional) return false;
     // Settings is only accessible to Super Admin
-    if (item.id === 'settings' && !isSuperAdmin) return false;
-    // If Sub-Admin, check if module has 'none' access
-    if (!isSuperAdmin && currentUser?.permissions?.[item.id] === 'none') {
-      return false;
-    }
-    return true;
+    if (item.id === 'settings') return isSuperAdmin;
+    // Respect per-module permissions (including Dashboard)
+    return hasModuleAccess(item.id, 'view');
   });
 
-  const upcomingItems = NAVIGATION_ITEMS.filter((item) => !item.functional);
+  const upcomingItems = NAVIGATION_ITEMS.filter((item) => {
+    if (item.functional) return false;
+    return hasModuleAccess(item.id, 'view');
+  });
 
   const renderNavItem = (item) => {
     const IconComponent = ICON_MAP[item.icon] || FolderKanban;

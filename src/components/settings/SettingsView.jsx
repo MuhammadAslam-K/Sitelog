@@ -277,15 +277,22 @@ export function SettingsView({
                       {/* Permissions Breakdown */}
                       <td className="py-3 px-4">
                         <div className="flex flex-wrap gap-1 max-w-md">
-                          {SYSTEM_MODULES.slice(0, 5).map((m) => {
-                            const level = user.permissions?.[m.id] || 'none';
+                          {SYSTEM_MODULES.slice(0, 6).map((m) => {
+                            const rawLevel = user.permissions?.[m.id] || 'none';
+                            const level = m.viewOnly && rawLevel === 'edit' ? 'view' : rawLevel;
+                            const shortLabel =
+                              m.id === 'wages'
+                                ? 'Wages'
+                                : m.id === 'expenses'
+                                ? 'Expenses'
+                                : m.label.split(' ')[0];
                             return (
                               <div
                                 key={m.id}
                                 className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-slate-50 border border-[#E2E8F0]"
                               >
                                 <span className="text-[#64748B] font-medium truncate max-w-[80px]">
-                                  {m.label.split(' ')[0]}:
+                                  {shortLabel}:
                                 </span>
                                 {getPermissionBadge(level)}
                               </div>

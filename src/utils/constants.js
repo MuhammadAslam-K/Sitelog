@@ -147,6 +147,7 @@ export const NAVIGATION_ITEMS = [
 ];
 
 export const SYSTEM_MODULES = [
+  { id: 'dashboard', label: 'Dashboard Overview', description: 'KPI summaries, contract values & expenditure overview', viewOnly: true },
   { id: 'projects', label: 'Projects Management', description: 'Tender tracking, road works & budgets' },
   { id: 'employees', label: 'Employees & Workforce', description: 'Staff directory & payroll ledger' },
   { id: 'wages', label: 'Daily Wages & Attendance', description: 'Muster roll, daily wages & site advances' },
@@ -188,6 +189,7 @@ export const DEFAULT_SUPER_ADMIN = {
   designation: 'Managing Director & Super Admin',
   status: 'Active',
   permissions: {
+    dashboard: 'edit',
     projects: 'edit',
     employees: 'edit',
     wages: 'edit',

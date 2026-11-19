@@ -14,6 +14,7 @@ import {
 import { MetricCard } from './MetricCard.jsx';
 import { formatIndianCurrency, formatIndianCompact } from '../../utils/formatters.js';
 import { calculateEmployeeWageReflection } from '../../utils/wageCalculator.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 export function DashboardOverview({ 
   projects = [], 
@@ -29,6 +30,7 @@ export function DashboardOverview({
   onNavigateToMaterials,
   onNavigateToSettings
 }) {
+  const { canViewModule } = useAuth();
   // Filter active (non-archived) projects for current metrics
   const activeProjects = projects.filter((p) => !p.isArchived);
 
@@ -227,12 +229,14 @@ export function DashboardOverview({
               </div>
             </div>
 
-            <button
-              onClick={onNavigateToWages}
-              className="text-xs font-bold text-[#0F8B78] hover:text-[#0D7A69] underline shrink-0"
-            >
-              View Daily Wages →
-            </button>
+            {canViewModule('wages') && (
+              <button
+                onClick={onNavigateToWages}
+                className="text-xs font-bold text-[#0F8B78] hover:text-[#0D7A69] underline shrink-0"
+              >
+                View Daily Wages →
+              </button>
+            )}
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -246,12 +250,14 @@ export function DashboardOverview({
               </div>
             </div>
 
-            <button
-              onClick={onNavigateToExpenses}
-              className="text-xs font-bold text-[#2563EB] hover:text-blue-800 underline shrink-0"
-            >
-              View Daily Expenses →
-            </button>
+            {canViewModule('expenses') && (
+              <button
+                onClick={onNavigateToExpenses}
+                className="text-xs font-bold text-[#2563EB] hover:text-blue-800 underline shrink-0"
+              >
+                View Daily Expenses →
+              </button>
+            )}
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -265,12 +271,14 @@ export function DashboardOverview({
               </div>
             </div>
 
-            <button
-              onClick={onNavigateToMaterials}
-              className="text-xs font-bold text-amber-700 hover:text-amber-900 underline shrink-0"
-            >
-              View Materials →
-            </button>
+            {canViewModule('materials') && (
+              <button
+                onClick={onNavigateToMaterials}
+                className="text-xs font-bold text-amber-700 hover:text-amber-900 underline shrink-0"
+              >
+                View Materials →
+              </button>
+            )}
           </div>
         </div>
       </div>

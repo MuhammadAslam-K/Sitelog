@@ -147,11 +147,12 @@ export async function authenticateSystemUser(usernameOrEmail, password) {
 
 /**
  * Validates an active user session against Firestore to ensure user still exists and is active.
+ * Distinguishes explicit account revocation/deletion from transient offline/network errors.
  * @param {string} userId
- * @returns {Promise<Object|null>}
+ * @returns {Promise<{ valid: boolean, user: Object|null, offline?: boolean, reason?: string }>}
  */
 export async function verifyUserSession(userId) {
-  if (!userId) return null;
+  if (!userId) return { valid: false, user: null, reason: 'missing_id' };
 
   // Super Admin validation
   if (userId === DEFAULT_SUPER_ADMIN.userId) {
@@ -160,29 +161,35 @@ export async function verifyUserSession(userId) {
       const snap = await getDoc(adminRef);
       if (snap.exists()) {
         const data = snap.data();
-        if (data.status === 'Disabled') return null;
+        if (data.status === 'Disabled') {
+          return { valid: false, user: null, reason: 'disabled' };
+        }
         const { password: _, ...safeUser } = data;
-        return { id: snap.id, ...safeUser };
+        return { valid: true, user: { id: snap.id, ...safeUser } };
       }
     } catch {
-      // In offline/initialization fallback
+      // Offline/initialization fallback
     }
     const { password: _, ...safeAdmin } = DEFAULT_SUPER_ADMIN;
-    return safeAdmin;
+    return { valid: true, user: safeAdmin, offline: true };
   }
 
   // Sub-admin validation
   try {
     const userRef = doc(db, USERS_COLLECTION, userId);
     const snap = await getDoc(userRef);
-    if (!snap.exists()) return null;
+    if (!snap.exists()) {
+      return { valid: false, user: null, reason: 'not_found' };
+    }
     const data = snap.data();
-    if (data.status === 'Disabled') return null;
+    if (data.status === 'Disabled') {
+      return { valid: false, user: null, reason: 'disabled' };
+    }
     const { password: _, ...safeUser } = data;
-    return { id: snap.id, ...safeUser };
+    return { valid: true, user: { id: snap.id, ...safeUser } };
   } catch (error) {
-    console.warn('Session verification notice:', error.message);
-    return null;
+    console.warn('Session verification offline fallback:', error.message);
+    return { valid: true, user: null, offline: true };
   }
 }
 

@@ -92,7 +92,32 @@ function ConstructionApp() {
   } = useAuth();
 
   const [currentSection, setCurrentSection] = useState('dashboard');
-  
+
+  const getFirstAccessibleSection = () => {
+    if (!currentUser) return 'dashboard';
+    if (isSuperAdmin) return 'dashboard';
+    const ordered = ['dashboard', 'projects', 'employees', 'wages', 'expenses', 'materials', 'machinery', 'progress', 'reports'];
+    const found = ordered.find((sec) => hasModuleAccess(sec, 'view'));
+    return found || 'no-access';
+  };
+
+  // Redirect automatically whenever currentUser's permissions don't allow the current section
+  useEffect(() => {
+    if (!currentUser) return;
+    const allowed =
+      currentSection === 'settings'
+        ? isSuperAdmin
+        : currentSection !== 'no-access' && hasModuleAccess(currentSection, 'view');
+
+    if (!allowed) {
+      const fallback = getFirstAccessibleSection();
+      if (fallback !== currentSection) {
+        setCurrentSection(fallback);
+        setSelectedProject(null);
+      }
+    }
+  }, [currentUser, currentSection, isSuperAdmin]);
+
   // URL Hash routing and back-button / bfcache protection
   useEffect(() => {
     const handleLocationSync = () => {
@@ -101,9 +126,9 @@ function ConstructionApp() {
       if (hash && validSections.includes(hash)) {
         if (currentUser) {
           if (hash === 'settings' && !isSuperAdmin) {
-            setCurrentSection('dashboard');
+            setCurrentSection(getFirstAccessibleSection());
           } else if (!hasModuleAccess(hash, 'view')) {
-            setCurrentSection('dashboard');
+            setCurrentSection(getFirstAccessibleSection());
           } else {
             setCurrentSection(hash);
           }
@@ -1136,7 +1161,7 @@ function ConstructionApp() {
       searchQuery={globalSearch}
       onSearchChange={(q) => {
         setGlobalSearch(q);
-        if (q && currentSection === 'dashboard') {
+        if (q && currentSection === 'dashboard' && canViewModule('projects')) {
           setCurrentSection('projects');
           setSelectedProject(null);
         }
@@ -1174,7 +1199,7 @@ function ConstructionApp() {
           onEditMaterial={canEditModule('materials') ? (mat) => handleOpenEditMaterialModal(mat) : null}
           onDeleteMaterial={canEditModule('materials') ? (mat) => handleOpenDeleteMaterialModal(mat) : null}
         />
-      ) : currentSection === 'dashboard' ? (
+      ) : currentSection === 'dashboard' && canViewModule('dashboard') ? (
         /* Unified Common Dashboard */
         <DashboardOverview
           projects={enhancedProjects}
@@ -1190,7 +1215,7 @@ function ConstructionApp() {
           onNavigateToMaterials={() => setCurrentSection('materials')}
           onNavigateToSettings={() => setCurrentSection('settings')}
         />
-      ) : currentSection === 'projects' ? (
+      ) : currentSection === 'projects' && canViewModule('projects') ? (
         /* Projects Page */
         <ProjectsList
           projects={enhancedProjects}
@@ -1201,7 +1226,7 @@ function ConstructionApp() {
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
         />
-      ) : currentSection === 'employees' ? (
+      ) : currentSection === 'employees' && canViewModule('employees') ? (
         /* Employees Page - Dynamically reflects wages from dailyWages collection */
         <EmployeesList
           employees={employees}
@@ -1212,7 +1237,7 @@ function ConstructionApp() {
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
         />
-      ) : currentSection === 'wages' ? (
+      ) : currentSection === 'wages' && canViewModule('wages') ? (
         /* Daily Wages Page (Active Module) */
         <DailyWagesList
           wages={wages}
@@ -1226,7 +1251,7 @@ function ConstructionApp() {
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
         />
-      ) : currentSection === 'expenses' ? (
+      ) : currentSection === 'expenses' && canViewModule('expenses') ? (
         /* Daily Expenses Page (Phase 3 Active Module) */
         <DailyExpensesList
           expenses={expenses}
@@ -1237,7 +1262,7 @@ function ConstructionApp() {
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
         />
-      ) : currentSection === 'materials' ? (
+      ) : currentSection === 'materials' && canViewModule('materials') ? (
         /* Daily Materials Page (Phase 5 Active Module) */
         <DailyMaterialsList
           materials={materials}
@@ -1247,7 +1272,7 @@ function ConstructionApp() {
           onEditMaterial={canEditModule('materials') ? handleOpenEditMaterialModal : null}
           onDeleteMaterial={canEditModule('materials') ? handleOpenDeleteMaterialModal : null}
         />
-      ) : currentSection === 'settings' ? (
+      ) : currentSection === 'settings' && isSuperAdmin ? (
         /* Settings & RBAC Access Control (Phase 8 Active Module) */
         <SettingsView
           systemUsers={systemUsers}
@@ -1257,12 +1282,22 @@ function ConstructionApp() {
           onToggleUserStatus={handleToggleSubAdminStatus}
           onOpenPasswordReset={() => setIsPasswordResetModalOpen(true)}
         />
+      ) : currentSection === 'no-access' || !hasModuleAccess(currentSection, 'view') ? (
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center max-w-lg mx-auto mt-10 shadow-2xs">
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-[#DC5353] border border-rose-200 flex items-center justify-center mx-auto mb-4">
+            <HardHat className="w-7 h-7" />
+          </div>
+          <h3 className="text-lg font-extrabold text-[#172B4D]">No Modules Assigned</h3>
+          <p className="text-xs sm:text-sm text-[#64748B] mt-2 leading-relaxed">
+            Your account currently does not have access enabled for any modules. Please contact the Super Admin to grant permissions.
+          </p>
+        </div>
       ) : (
         /* Upcoming Modules (Machinery, Progress, Reports) */
         <UpcomingModule
           moduleId={currentSection}
           onNavigateToProjects={() => {
-            setCurrentSection('projects');
+            setCurrentSection(getFirstAccessibleSection());
             setSelectedProject(null);
           }}
         />

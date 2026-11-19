@@ -82,7 +82,7 @@ export function SubAdminFormModal({
   const setAllPermissions = (level) => {
     const updated = {};
     SYSTEM_MODULES.forEach((mod) => {
-      updated[mod.id] = level;
+      updated[mod.id] = mod.viewOnly && level === 'edit' ? 'view' : level;
     });
     setFormData((prev) => ({
       ...prev,
@@ -301,7 +301,11 @@ export function SubAdminFormModal({
 
           <div className="divide-y divide-[#E2E8F0] bg-white rounded-xl border border-[#E2E8F0] overflow-hidden text-xs">
             {SYSTEM_MODULES.map((module) => {
-              const currentLevel = formData.permissions[module.id] || 'none';
+              const rawLevel = formData.permissions[module.id] || 'none';
+              const currentLevel = module.viewOnly && rawLevel === 'edit' ? 'view' : rawLevel;
+              const availableLevels = module.viewOnly
+                ? ACCESS_LEVELS.filter((lvl) => lvl.id !== 'edit')
+                : ACCESS_LEVELS;
 
               return (
                 <div 
@@ -317,9 +321,9 @@ export function SubAdminFormModal({
                     </span>
                   </div>
 
-                  {/* 3 Radio Pills */}
+                  {/* Access Level Pills */}
                   <div className="flex items-center gap-1 shrink-0 bg-slate-100 p-1 rounded-xl">
-                    {ACCESS_LEVELS.map((lvl) => {
+                    {availableLevels.map((lvl) => {
                       const isSelected = currentLevel === lvl.id;
                       let activeStyle = '';
                       if (isSelected) {

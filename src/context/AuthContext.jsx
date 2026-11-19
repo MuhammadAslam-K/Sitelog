@@ -4,35 +4,78 @@
  * - Super Admin (Muhammad Aslam / Muhammad@2003 / aslamka.2k3@gmail.com)
  * - Sub-Admin accounts with granular module permission enforcement (none, view, edit)
  * - Email-verified password reset workflow
- * - Session persistence in localStorage
+ * - Persistent session in localStorage across app/browser close & reopen until explicit Logout
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  signOut, 
-  setPersistence, 
-  browserSessionPersistence 
+import {
+  signInWithPopup,
+  signOut,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config.js';
-import { 
-  DEFAULT_SUPER_ADMIN 
-} from '../utils/constants.js';
-import { 
-  authenticateSystemUser, 
-  resetPasswordByEmail, 
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db, googleProvider } from '../firebase/config.js';
+import { DEFAULT_SUPER_ADMIN } from '../utils/constants.js';
+import {
+  authenticateSystemUser,
+  resetPasswordByEmail,
   initializeSuperAdminIfMissing,
   verifyResetEmail,
   verifyUserSession
 } from '../firebase/userService.js';
 
 const AuthContext = createContext(null);
-const SESSION_STORAGE_KEY = 'kerala_roadways_window_session';
-const SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const PERSISTENT_SESSION_KEY = 'kerala_roadways_auth_session';
+const LEGACY_SESSION_KEYS = ['kerala_roadways_auth_user', 'kerala_roadways_window_session'];
+
+function readStoredSession() {
+  try {
+    const raw = localStorage.getItem(PERSISTENT_SESSION_KEY);
+    if (raw) return JSON.parse(raw);
+
+    // Migrate any active sessionStorage entry from earlier tab session
+    const legacySession = sessionStorage.getItem('kerala_roadways_window_session');
+    if (legacySession) {
+      localStorage.setItem(PERSISTENT_SESSION_KEY, legacySession);
+      sessionStorage.removeItem('kerala_roadways_window_session');
+      return JSON.parse(legacySession);
+    }
+  } catch (e) {
+    console.warn('Persistent session read notice:', e);
+  }
+  return null;
+}
+
+function savePersistentSession(sessionUser) {
+  try {
+    localStorage.setItem(PERSISTENT_SESSION_KEY, JSON.stringify(sessionUser));
+    LEGACY_SESSION_KEYS.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      } catch {}
+    });
+  } catch (e) {
+    console.warn('Persistent session write notice:', e);
+  }
+}
+
+function clearPersistentSession() {
+  try {
+    localStorage.removeItem(PERSISTENT_SESSION_KEY);
+    sessionStorage.removeItem(PERSISTENT_SESSION_KEY);
+    LEGACY_SESSION_KEYS.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      } catch {}
+    });
+  } catch {}
+}
 
 export function AuthProvider({ children }) {
-  // Current authenticated user (Super Admin or Sub Admin) - STRICTLY NULL BY DEFAULT
+  // Current authenticated user (Super Admin or Sub Admin) - persisted across close/reopen until Logout
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
@@ -40,102 +83,116 @@ export function AuthProvider({ children }) {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
 
-  // Initialize Super Admin in Firestore and verify any pre-existing session in THIS window/tab
+  // Initialize Super Admin in Firestore and restore persistent login session
   useEffect(() => {
     let isMounted = true;
 
-    async function initAndVerifySession() {
+    async function initAndRestoreSession() {
       try {
-        // Enforce session-only persistence in Firebase Auth so other windows do not inherit it
-        await setPersistence(auth, browserSessionPersistence).catch(() => {});
+        await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-        await initializeSuperAdminIfMissing().catch((err) => {
+        initializeSuperAdminIfMissing().catch((err) => {
           console.warn('Super admin initialization check:', err);
         });
 
-        // Clear any old legacy localStorage session keys so other browser windows/profiles do not leak
-        try {
-          localStorage.removeItem('kerala_roadways_auth_user');
-          localStorage.removeItem(SESSION_STORAGE_KEY);
-        } catch {}
+        const parsed = readStoredSession();
 
-        // Check if THIS specific browser window/tab session has an active, authenticated login
-        let rawSession = null;
-        try {
-          rawSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
-        } catch (e) {
-          console.warn('sessionStorage access notice:', e);
-        }
+        if (parsed && parsed.userId) {
+          // Restore immediately so reopening offline or in PWA works seamlessly
+          if (isMounted) setCurrentUser(parsed);
 
-        if (rawSession) {
-          const parsed = JSON.parse(rawSession);
+          // Skip systemUsers lookup for Google Sign-In sessions (managed via Google Auth)
+          const isGoogleSession =
+            parsed.authProvider === 'google' ||
+            (typeof parsed.sessionToken === 'string' && parsed.sessionToken.startsWith('kr_goog_'));
 
-          // Verify session timestamp expiration
-          if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
-            console.warn('Session has expired. Re-authentication required.');
-            try {
-              sessionStorage.removeItem(SESSION_STORAGE_KEY);
-            } catch {}
-            if (isMounted) setCurrentUser(null);
-          } else if (parsed.userId) {
-            // Independently verify user exists and is Active in database
-            const verified = await verifyUserSession(parsed.userId);
-            if (verified && isMounted) {
-              setCurrentUser({
-                ...verified,
+          if (!isGoogleSession) {
+            const verification = await verifyUserSession(parsed.userId);
+            if (!isMounted) return;
+
+            if (!verification.valid) {
+              // Explicitly disabled or deleted in Firestore
+              console.warn('Stored user account was disabled or deleted:', verification.reason);
+              clearPersistentSession();
+              setCurrentUser(null);
+            } else if (verification.user) {
+              const refreshedUser = {
+                ...verification.user,
                 sessionToken: parsed.sessionToken,
-                expiresAt: parsed.expiresAt
-              });
-            } else {
-              // User disabled or deleted in database - invalidate session
-              console.warn('Stored user session failed database verification.');
-              try {
-                sessionStorage.removeItem(SESSION_STORAGE_KEY);
-              } catch {}
-              if (isMounted) setCurrentUser(null);
+                loginTimestamp: parsed.loginTimestamp
+              };
+              setCurrentUser(refreshedUser);
+              savePersistentSession(refreshedUser);
             }
           }
         } else {
-          // No session in this window/tab - user must log in explicitly
           if (isMounted) setCurrentUser(null);
         }
       } catch (e) {
-        console.warn('Session verification exception:', e);
-        try {
-          sessionStorage.removeItem(SESSION_STORAGE_KEY);
-        } catch {}
+        console.warn('Session restoration exception:', e);
         if (isMounted) setCurrentUser(null);
       } finally {
         if (isMounted) setIsAuthChecking(false);
       }
     }
 
-    initAndVerifySession();
-
-    // Listen to Firebase Auth state for Google accounts ONLY if current session was initiated in this window
-    const unsubscribeAuth = onAuthStateChanged(auth, async (fbUser) => {
-      if (!isMounted) return;
-      if (!fbUser) {
-        // If Firebase Auth signed out and current session was Google, clear session
-        try {
-          const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
-          if (raw && raw.includes('kr_goog_')) {
-            sessionStorage.removeItem(SESSION_STORAGE_KEY);
-            setCurrentUser(null);
-          }
-        } catch {}
-      }
-    });
+    initAndRestoreSession();
 
     return () => {
       isMounted = false;
-      unsubscribeAuth();
     };
   }, []);
 
+  // Keep active credentials-based user's permissions & status synced in real-time
+  useEffect(() => {
+    if (!currentUser?.userId) return;
+    const isGoogleSession =
+      currentUser.authProvider === 'google' ||
+      (typeof currentUser.sessionToken === 'string' && currentUser.sessionToken.startsWith('kr_goog_'));
+    if (isGoogleSession) return;
+
+    const userDocRef = doc(db, 'systemUsers', currentUser.userId);
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (snap) => {
+        if (!snap.exists()) {
+          // Only log out non-super-admin accounts if explicitly removed from Firestore
+          if (currentUser.userId !== DEFAULT_SUPER_ADMIN.userId) {
+            clearPersistentSession();
+            setCurrentUser(null);
+          }
+          return;
+        }
+        const data = snap.data();
+        if (data.status === 'Disabled') {
+          clearPersistentSession();
+          setCurrentUser(null);
+          return;
+        }
+        const { password: _, ...safeUser } = data;
+        setCurrentUser((prev) => {
+          if (!prev) return prev;
+          const updated = {
+            ...prev,
+            ...safeUser,
+            id: snap.id
+          };
+          savePersistentSession(updated);
+          return updated;
+        });
+      },
+      (err) => {
+        // Ignore transient offline/permission listener notices so user is never unexpectedly logged out
+        console.warn('Live user profile sync notice:', err?.message);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUser?.userId, currentUser?.sessionToken, currentUser?.authProvider]);
+
   /**
    * Username / Password Login (Super Admin or Sub Admin)
-   * Scoped to this specific browser window/tab
+   * Persisted across app/browser closes until explicit Logout
    */
   const loginWithCredentials = async (usernameOrEmail, password) => {
     setAuthLoading(true);
@@ -144,16 +201,13 @@ export function AuthProvider({ children }) {
       const user = await authenticateSystemUser(usernameOrEmail, password);
       const sessionUser = {
         ...user,
+        authProvider: 'credentials',
         sessionToken: `kr_sess_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-        loginTimestamp: new Date().toISOString(),
-        expiresAt: Date.now() + SESSION_EXPIRY_MS
+        loginTimestamp: new Date().toISOString()
       };
 
       setCurrentUser(sessionUser);
-      try {
-        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-      } catch {}
+      savePersistentSession(sessionUser);
       setIsLoginModalOpen(false);
       return sessionUser;
     } catch (error) {
@@ -167,13 +221,13 @@ export function AuthProvider({ children }) {
 
   /**
    * Google Sign-In fallback
-   * Scoped to this specific browser window/tab
+   * Persisted across app/browser closes until explicit Logout
    */
   const loginWithGoogle = async () => {
     setAuthLoading(true);
     setAuthError(null);
     try {
-      await setPersistence(auth, browserSessionPersistence).catch(() => {});
+      await setPersistence(auth, browserLocalPersistence).catch(() => {});
       const result = await signInWithPopup(auth, googleProvider);
       const isSuper = result.user.email === 'aslamka.2k3@gmail.com';
       const googleUser = {
@@ -184,15 +238,13 @@ export function AuthProvider({ children }) {
         role: isSuper ? 'Super Admin' : 'Sub Admin',
         designation: isSuper ? 'Managing Director' : 'Site Operations',
         photoURL: result.user.photoURL,
+        authProvider: 'google',
         permissions: DEFAULT_SUPER_ADMIN.permissions,
         sessionToken: `kr_goog_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        expiresAt: Date.now() + SESSION_EXPIRY_MS
+        loginTimestamp: new Date().toISOString()
       };
       setCurrentUser(googleUser);
-      try {
-        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(googleUser));
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-      } catch {}
+      savePersistentSession(googleUser);
       setIsLoginModalOpen(false);
       return googleUser;
     } catch (error) {
@@ -205,7 +257,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Logs out the current user and completely terminates session in this window
+   * Logs out the current user and clears persistent session ONLY when explicitly triggered
    */
   const logout = async () => {
     try {
@@ -214,14 +266,11 @@ export function AuthProvider({ children }) {
       console.warn('Sign out warning:', e);
     }
     setCurrentUser(null);
+    clearPersistentSession();
     try {
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
       sessionStorage.clear();
-      localStorage.removeItem(SESSION_STORAGE_KEY);
-      localStorage.removeItem('kerala_roadways_auth_user');
     } catch {}
     setIsLoginModalOpen(false);
-    // Invalidate browser navigation state to prevent cached back-button history inspection
     try {
       window.history.replaceState({}, '', '/');
     } catch {}
@@ -235,11 +284,10 @@ export function AuthProvider({ children }) {
     try {
       const updatedUser = await resetPasswordByEmail(email, newPassword);
       if (currentUser && currentUser.email?.toLowerCase() === email.toLowerCase()) {
-        const refreshed = { ...currentUser, ...updatedUser };
+        const { password: _, ...safeUpdated } = updatedUser;
+        const refreshed = { ...currentUser, ...safeUpdated };
         setCurrentUser(refreshed);
-        try {
-          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(refreshed));
-        } catch {}
+        savePersistentSession(refreshed);
       }
       return updatedUser;
     } finally {
