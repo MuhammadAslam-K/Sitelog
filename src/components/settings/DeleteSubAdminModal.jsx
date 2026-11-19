@@ -51,10 +51,12 @@ export function DeleteSubAdminModal({
             <span className="text-[#64748B]">Username:</span>
             <span className="font-mono font-bold text-[#172B4D]">{subAdmin.username}</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[#64748B]">Email:</span>
-            <span className="font-medium text-[#172B4D]">{subAdmin.email}</span>
-          </div>
+          {subAdmin.email && (
+            <div className="flex items-center justify-between">
+              <span className="text-[#64748B]">Email:</span>
+              <span className="font-medium text-[#172B4D]">{subAdmin.email}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-[#64748B]">Role & Designation:</span>
             <span className="font-semibold text-[#0F8B78]">{subAdmin.designation || subAdmin.role}</span>

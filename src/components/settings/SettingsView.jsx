@@ -228,7 +228,7 @@ export function SettingsView({
                 <thead>
                   <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold uppercase tracking-wider text-[11px]">
                     <th className="py-3 px-4">Staff Member</th>
-                    <th className="py-3 px-4">Username & Email</th>
+                    <th className="py-3 px-4">Login Username</th>
                     <th className="py-3 px-4 text-center">Status</th>
                     <th className="py-3 px-4">Module Permissions Matrix</th>
                     <th className="py-3 px-4 text-center">Actions</th>
@@ -245,15 +245,17 @@ export function SettingsView({
                         </div>
                       </td>
 
-                      {/* Username & Email */}
+                      {/* Login Username (and optional legacy email) */}
                       <td className="py-3 px-4">
                         <div className="font-mono font-bold text-[#172B4D]">
                           {user.username}
                         </div>
-                        <div className="text-[11px] text-[#64748B] flex items-center gap-1 mt-0.5">
-                          <Mail className="w-3 h-3 text-[#64748B]" />
-                          <span>{user.email}</span>
-                        </div>
+                        {user.email && (
+                          <div className="text-[11px] text-[#64748B] flex items-center gap-1 mt-0.5">
+                            <Mail className="w-3 h-3 text-[#64748B]" />
+                            <span>{user.email}</span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Status */}
@@ -384,17 +386,17 @@ export function SettingsView({
             <div className="p-4 rounded-xl bg-slate-50 border border-[#E2E8F0] space-y-2 text-xs">
               <div className="flex items-center gap-2 font-bold text-[#172B4D]">
                 <KeyRound className="w-4 h-4 text-[#0F8B78]" />
-                <span>Password Reset by Registered Email</span>
+                <span>Password Management & Recovery</span>
               </div>
               <p className="text-[#64748B] leading-relaxed">
-                When a user clicks "Reset Password", the system requires entering the exact registered email ID. If the email matches the registry, identity is validated and a new password can be configured immediately.
+                Sub-Admins who forget their password are directed to contact the Super Admin, who can immediately set a new password using the <strong>Edit</strong> action on any Sub-Admin account. Super Admin password recovery uses the registered primary email.
               </p>
               <div className="pt-2">
                 <button
                   onClick={onOpenPasswordReset}
                   className="px-3 py-1.5 text-xs font-bold text-white bg-[#0F8B78] hover:bg-[#0d7867] rounded-lg transition-colors shadow-2xs"
                 >
-                  Launch Reset Flow Now
+                  Super Admin Email Recovery
                 </button>
               </div>
             </div>

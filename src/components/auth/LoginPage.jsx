@@ -85,7 +85,7 @@ export function LoginPage({ onOpenPasswordReset }) {
             {/* Username / Email */}
             <div>
               <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
-                Username or Registered Email
+                Username
               </label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
@@ -93,7 +93,7 @@ export function LoginPage({ onOpenPasswordReset }) {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. Muhammad Aslam or email"
+                  placeholder="Enter your username (e.g. rahul.site or Muhammad Aslam)"
                   className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-[#F5F7FA] focus:bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-hidden focus:ring-2 focus:ring-[#0F8B78]/20 transition-all font-medium"
                   required
                   autoFocus

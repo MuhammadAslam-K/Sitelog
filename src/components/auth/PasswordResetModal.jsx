@@ -112,19 +112,31 @@ export function PasswordResetModal({ isOpen, onClose }) {
         )}
 
         {!verifiedUser ? (
-          /* STEP 1: Email Verification */
+          /* STEP 1: Sub-Admin Contact Admin Notice + Super Admin Email Verification */
           <form onSubmit={handleVerifyEmail} className="space-y-4">
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-[#172B4D] text-xs leading-relaxed space-y-1">
+              <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
+                Sub-Admin / Site Staff Password Reset
+              </p>
+              <p className="text-amber-900/90">
+                If you are a Sub-Admin or staff user and forgot your password, please <strong>contact your Admin (Muhammad Aslam)</strong>. The Admin can update your password directly from Settings → Edit Sub-Admin.
+              </p>
+            </div>
+
             <div className="p-3 rounded-xl bg-slate-50 border border-[#E2E8F0] text-[#172B4D] text-xs leading-relaxed">
               <p className="font-bold flex items-center gap-1.5 mb-1 text-[#172B4D]">
-                <ShieldCheck className="w-4 h-4 text-[#0F8B78]" />
-                Security Verification Required
+                <KeyRound className="w-3.5 h-3.5 text-[#0F8B78]" />
+                Super Admin Email Recovery Only
               </p>
-              To reset your password, please provide your registered email address. For Super Admin Muhammad Aslam, enter <strong>aslamka.2k3@gmail.com</strong>.
+              <p className="text-[#64748B]">
+                For Super Admin recovery, enter the registered admin email (<strong>aslamka.2k3@gmail.com</strong>).
+              </p>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
-                Registered Email Address <span className="text-[#DC5353]">*</span>
+                Super Admin Registered Email <span className="text-[#DC5353]">*</span>
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
@@ -163,7 +175,7 @@ export function PasswordResetModal({ isOpen, onClose }) {
                 disabled={isVerifying}
                 className="py-2 px-4 bg-[#0F8B78] hover:bg-[#0d7867] disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-2xs flex items-center gap-1.5"
               >
-                <span>{isVerifying ? 'Verifying Email...' : 'Verify Email ID'}</span>
+                <span>{isVerifying ? 'Verifying Email...' : 'Verify Admin Email'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

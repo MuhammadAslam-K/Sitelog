@@ -104,7 +104,7 @@ export async function authenticateSystemUser(usernameOrEmail, password) {
       const u = d.data();
       const uName = (u.username || '').trim().toLowerCase();
       const uEmail = (u.email || '').trim().toLowerCase();
-      if (uName === cleanInput || uEmail === cleanInput) {
+      if (uName === cleanInput || (uEmail && uEmail === cleanInput)) {
         matchedUser = { id: d.id, ...u };
       }
     });
@@ -217,7 +217,7 @@ export async function verifyResetEmail(email) {
     return DEFAULT_SUPER_ADMIN;
   }
 
-  // Check in Firestore
+  // Check in Firestore (if a Sub-Admin tries email recovery, instruct them to contact Super Admin)
   try {
     const snap = await getDocs(collection(db, USERS_COLLECTION));
     let matchedUser = null;
@@ -230,13 +230,19 @@ export async function verifyResetEmail(email) {
     });
 
     if (matchedUser) {
+      if (matchedUser.role !== 'Super Admin') {
+        throw new Error('Sub-Admin passwords cannot be reset via email. Please contact the Admin to change your password.');
+      }
       return matchedUser;
     }
   } catch (err) {
+    if (err.message && err.message.includes('contact the Admin')) {
+      throw err;
+    }
     console.error('Error verifying email:', err);
   }
 
-  throw new Error(`Email "${email}" is not registered. Please enter the email registered with this account (e.g. aslamka.2k3@gmail.com).`);
+  throw new Error('Only the Super Admin account supports email recovery. Sub-Admins should contact the Admin to reset their password.');
 }
 
 /**
@@ -294,17 +300,16 @@ export async function createSubAdmin(userData) {
 
   if (!name || name.length < 2) throw new Error('Full Name is required (minimum 2 characters).');
   if (!username || username.length < 2) throw new Error('Username is required (minimum 2 characters).');
-  if (!email || !email.includes('@')) throw new Error('A valid email address is required.');
   if (!password || password.length < 4) throw new Error('Password must be at least 4 characters long.');
 
-  // Check username uniqueness
+  // Check username uniqueness (and email only if provided)
   const snap = await getDocs(collection(db, USERS_COLLECTION));
   for (const d of snap.docs) {
     const existing = d.data();
     if ((existing.username || '').toLowerCase() === username.toLowerCase()) {
       throw new Error(`Username "${username}" is already taken. Please choose another.`);
     }
-    if ((existing.email || '').toLowerCase() === email.toLowerCase()) {
+    if (email && (existing.email || '').toLowerCase() === email.toLowerCase()) {
       throw new Error(`Email "${email}" is already in use by another staff account.`);
     }
   }

@@ -159,9 +159,7 @@ service cloud.firestore {
              data.name is string &&
              data.name.size() >= 2 &&
              data.name.size() <= 100 &&
-             data.email is string &&
-             data.email.size() >= 5 &&
-             data.email.size() <= 120 &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
              data.password is string &&
              data.password.size() >= 4 &&
              data.role in ['Super Admin', 'Sub Admin'] &&

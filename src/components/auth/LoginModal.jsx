@@ -79,7 +79,7 @@ export function LoginModal({ isOpen, onClose }) {
           {/* Username */}
           <div>
             <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
-              Username or Registered Email
+              Username
             </label>
             <div className="relative">
               <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
@@ -87,7 +87,7 @@ export function LoginModal({ isOpen, onClose }) {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. Muhammad Aslam"
+                placeholder="e.g. rahul.site or Muhammad Aslam"
                 className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
                 required
               />

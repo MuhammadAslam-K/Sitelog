@@ -496,13 +496,12 @@
         },
         "email": {
           "type": "string",
-          "description": "Registered email ID used for password verification and reset",
-          "format": "email"
+          "description": "Optional registered email ID (used for Super Admin recovery)"
         },
         "password": {
           "type": "string",
           "description": "User login password",
-          "minLength": 6
+          "minLength": 4
         },
         "role": {
           "type": "string",
@@ -531,7 +530,7 @@
           "format": "date-time"
         }
       },
-      "required": ["userId", "username", "name", "email", "password", "role", "status"]
+      "required": ["userId", "username", "name", "password", "role", "status"]
     }
   },
   "firestore": {

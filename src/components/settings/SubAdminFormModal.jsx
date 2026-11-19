@@ -12,7 +12,9 @@ import {
   Edit3,
   Ban,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  EyeOff,
+  KeyRound
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
 import { SYSTEM_MODULES, ACCESS_LEVELS } from '../../utils/constants.js';
@@ -28,13 +30,13 @@ export function SubAdminFormModal({
   const [formData, setFormData] = useState({
     name: '',
     username: '',
-    email: '',
     password: '',
     designation: 'Site Supervisor',
     status: 'Active',
     permissions: {}
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,8 +45,7 @@ export function SubAdminFormModal({
       setFormData({
         name: initialData.name || '',
         username: initialData.username || '',
-        email: initialData.email || '',
-        password: '', // Blank unless updating password
+        password: '', // Blank unless Admin enters a new password
         designation: initialData.designation || 'Site Supervisor',
         status: initialData.status || 'Active',
         permissions: initialData.permissions || {}
@@ -59,13 +60,13 @@ export function SubAdminFormModal({
       setFormData({
         name: '',
         username: '',
-        email: '',
         password: '',
         designation: 'Site Supervisor',
         status: 'Active',
         permissions: initialPerms
       });
     }
+    setShowPassword(false);
     setValidationErrors({});
   }, [initialData, isOpen]);
 
@@ -94,9 +95,6 @@ export function SubAdminFormModal({
     const errors = {};
     if (!formData.name.trim()) errors.name = 'Full name is required';
     if (!formData.username.trim()) errors.username = 'Username is required';
-    if (!formData.email.trim() || !formData.email.includes('@')) {
-      errors.email = 'A valid email is required (for password recovery)';
-    }
 
     if (!isEditMode) {
       if (!formData.password || formData.password.length < 4) {
@@ -190,48 +188,6 @@ export function SubAdminFormModal({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
-              Registered Email (for Password Reset) <span className="text-[#DC5353]">*</span>
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
-              <input
-                type="email"
-                placeholder="e.g. rahul@keralaroadways.in"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
-                required
-              />
-            </div>
-            {validationErrors.email && (
-              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
-              {isEditMode ? 'Change Password (leave empty to keep current)' : 'Account Password *'}
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
-              <input
-                type="password"
-                placeholder={isEditMode ? '••••••••' : 'Min 4 characters'}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
-                required={!isEditMode}
-              />
-            </div>
-            {validationErrors.password && (
-              <p className="text-[11px] text-[#DC5353] mt-1">{validationErrors.password}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-[#172B4D] mb-1.5">
               Designation / Role Title
             </label>
             <div className="relative">
@@ -259,6 +215,49 @@ export function SubAdminFormModal({
               <option value="Disabled">Disabled (Access Revoked)</option>
             </select>
           </div>
+        </div>
+
+        {/* Password / Change Password Box */}
+        <div className="p-3.5 rounded-xl bg-slate-50 border border-[#E2E8F0] space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-xs font-bold text-[#172B4D] flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-[#0F8B78]" />
+              <span>
+                {isEditMode ? 'Change Password' : 'Account Password'}
+                {!isEditMode && <span className="text-[#DC5353]"> *</span>}
+              </span>
+            </label>
+            {isEditMode && (
+              <span className="text-[10px] font-semibold text-[#64748B]">
+                Leave blank to keep existing password
+              </span>
+            )}
+          </div>
+          <div className="relative">
+            <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder={isEditMode ? 'Enter new password to reset for this Sub-Admin' : 'Min 4 characters'}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full pl-9 pr-10 py-2 text-xs sm:text-sm font-mono rounded-xl border border-[#E2E8F0] bg-white text-[#172B4D] focus:border-[#0F8B78] focus:outline-none focus:ring-2 focus:ring-[#0F8B78]/20"
+              required={!isEditMode}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#172B4D] p-1"
+              aria-label="Toggle password visibility"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {validationErrors.password && (
+            <p className="text-[11px] text-[#DC5353]">{validationErrors.password}</p>
+          )}
+          <p className="text-[10px] text-[#64748B]">
+            Sub-Admins are instructed to contact Admin for password resets — no email ID required.
+          </p>
         </div>
 
         {/* Granular Module Access Control Matrix */}
