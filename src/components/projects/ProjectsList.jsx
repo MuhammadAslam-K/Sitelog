@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ProjectTable } from './ProjectTable.jsx';
 import { LOCAL_BODIES, WORK_TYPES, PROJECT_STATUSES } from '../../utils/constants.js';
+import { formatRecordedBy } from '../../utils/formatters.js';
 
 export function ProjectsList({
   projects = [],
@@ -75,7 +76,8 @@ export function ProjectsList({
           const q = searchQuery.toLowerCase().trim();
           const matchesId = project.projectId?.toLowerCase().includes(q);
           const matchesName = project.projectName?.toLowerCase().includes(q);
-          if (!matchesId && !matchesName) return false;
+          const matchesAddedBy = formatRecordedBy(project.createdBy).toLowerCase().includes(q);
+          if (!matchesId && !matchesName && !matchesAddedBy) return false;
         }
 
         // Local Body filter
@@ -161,15 +163,17 @@ export function ProjectsList({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onAddNewProject}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs hover:shadow-xs transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Project
-          </button>
-        </div>
+        {onAddNewProject && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onAddNewProject}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs hover:shadow-xs transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Add New Project
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter and Search Bar */}

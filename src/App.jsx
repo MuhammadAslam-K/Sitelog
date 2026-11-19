@@ -859,7 +859,7 @@ function ConstructionApp() {
 
     try {
       if (editingMaterial) {
-        await updateMaterial(editingMaterial.materialId || editingMaterial.id, formData);
+        await updateMaterial(editingMaterial.materialId || editingMaterial.id, formData, currentUser);
         showToast(`Material entry ${editingMaterial.materialId} updated successfully!`, 'success', 'Material Updated');
       } else {
         const newRecord = await createMaterial(formData, currentUser);
@@ -905,7 +905,7 @@ function ConstructionApp() {
     }
     setIsSeedingMaterials(true);
     try {
-      const res = await seedSampleMaterialsIfEmpty(projects);
+      const res = await seedSampleMaterialsIfEmpty(projects, currentUser);
       if (res.seeded) {
         showToast(`Loaded ${res.count} realistic Kerala road material supplies (Bitumen, M-Sand, Aggregates, Cement)!`, 'success', 'Materials Seeded');
       } else {
@@ -1164,15 +1164,15 @@ function ConstructionApp() {
           expenses={expenses}
           materials={materials}
           onBack={() => setSelectedProject(null)}
-          onEdit={(proj) => handleOpenEditProjectModal(proj)}
-          onArchiveToggle={(proj) => handleOpenArchiveProjectModal(proj)}
-          onEditWage={(wage) => handleOpenEditWageModal(wage)}
-          onDeleteWage={(wage) => handleOpenDeleteWageModal(wage)}
-          onSettleWage={handleSettleWage}
-          onEditExpense={(exp) => handleOpenEditExpenseModal(exp)}
-          onDeleteExpense={(exp) => handleOpenDeleteExpenseModal(exp)}
-          onEditMaterial={(mat) => handleOpenEditMaterialModal(mat)}
-          onDeleteMaterial={(mat) => handleOpenDeleteMaterialModal(mat)}
+          onEdit={canEditModule('projects') ? (proj) => handleOpenEditProjectModal(proj) : null}
+          onArchiveToggle={canEditModule('projects') ? (proj) => handleOpenArchiveProjectModal(proj) : null}
+          onEditWage={canEditModule('wages') ? (wage) => handleOpenEditWageModal(wage) : null}
+          onDeleteWage={canEditModule('wages') ? (wage) => handleOpenDeleteWageModal(wage) : null}
+          onSettleWage={canEditModule('wages') ? handleSettleWage : null}
+          onEditExpense={canEditModule('expenses') ? (exp) => handleOpenEditExpenseModal(exp) : null}
+          onDeleteExpense={canEditModule('expenses') ? (exp) => handleOpenDeleteExpenseModal(exp) : null}
+          onEditMaterial={canEditModule('materials') ? (mat) => handleOpenEditMaterialModal(mat) : null}
+          onDeleteMaterial={canEditModule('materials') ? (mat) => handleOpenDeleteMaterialModal(mat) : null}
         />
       ) : currentSection === 'dashboard' ? (
         /* Unified Common Dashboard */
@@ -1182,7 +1182,7 @@ function ConstructionApp() {
           wages={wages}
           expenses={expenses}
           materials={materials}
-          onAddNewProject={handleOpenAddProjectModal}
+          onAddNewProject={canEditModule('projects') ? handleOpenAddProjectModal : null}
           onNavigateToProjects={() => setCurrentSection('projects')}
           onNavigateToEmployees={() => setCurrentSection('employees')}
           onNavigateToWages={() => setCurrentSection('wages')}

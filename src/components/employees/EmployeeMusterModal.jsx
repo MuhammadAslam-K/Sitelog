@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../common/Modal.jsx';
 import { TablePagination } from '../common/TablePagination.jsx';
+import { RecordedByBadge } from '../common/RecordedByBadge.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { getWagePayableBalance } from '../../utils/wageCalculator.js';
 import { generateWageSlipPDF } from '../../utils/pdfGenerator.js';
@@ -146,6 +147,7 @@ export function EmployeeMusterModal({
                   <th className="py-2.5 px-3 text-right">Advance (₹)</th>
                   <th className="py-2.5 px-3 text-right">Balance (₹)</th>
                   <th className="py-2.5 px-3 text-center">Status</th>
+                  <th className="py-2.5 px-3">Added By</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
@@ -219,6 +221,10 @@ export function EmployeeMusterModal({
                         }`}>
                           {effectiveStatus}
                         </span>
+                      </td>
+
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <RecordedByBadge createdBy={item.createdBy} updatedBy={item.updatedBy} settledBy={item.settledBy} />
                       </td>
                     </tr>
                   );

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge, TagBadge } from '../common/Badge.jsx';
 import { TablePagination } from '../common/TablePagination.jsx';
+import { RecordedByBadge } from '../common/RecordedByBadge.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 
 export function ProjectTable({
@@ -57,6 +58,7 @@ export function ProjectTable({
     { key: 'otherTotalExpenses', label: '8. Other Total Exp (₹)', align: 'right', sortable: true },
     { key: 'totalLabourExpenses', label: '9. Total Labour Exp (₹)', align: 'right', sortable: true },
     { key: 'totalBudget', label: '10. Total Budget (₹)', align: 'right', sortable: true },
+    { key: 'createdBy', label: 'Added By', align: 'left', sortable: true },
     { key: 'actions', label: 'Actions', align: 'center', sortable: false }
   ];
 
@@ -182,6 +184,11 @@ export function ProjectTable({
                   {formatIndianCurrency(project.totalBudget)}
                 </td>
 
+                {/* Added By */}
+                <td className="py-3.5 px-3.5 whitespace-nowrap">
+                  <RecordedByBadge createdBy={project.createdBy} updatedBy={project.updatedBy} />
+                </td>
+
                 {/* Actions */}
                 <td 
                   className="py-3.5 px-3.5 text-center whitespace-nowrap"
@@ -197,31 +204,35 @@ export function ProjectTable({
                       <Eye className="w-4 h-4" />
                     </button>
 
-                    <button
-                      onClick={() => onEditProject(project)}
-                      title="Edit Project"
-                      className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
-                      aria-label="Edit Project"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
+                    {onEditProject && (
+                      <button
+                        onClick={() => onEditProject(project)}
+                        title="Edit Project"
+                        className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
+                        aria-label="Edit Project"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => onArchiveProject(project)}
-                      title={project.isArchived ? 'Restore Project' : 'Archive Project'}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        project.isArchived
-                          ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
-                          : 'text-[#64748B] hover:text-[#DC5353] hover:bg-rose-50'
-                      }`}
-                      aria-label={project.isArchived ? 'Restore Project' : 'Archive Project'}
-                    >
-                      {project.isArchived ? (
-                        <RotateCcw className="w-4 h-4" />
-                      ) : (
-                        <Archive className="w-4 h-4" />
-                      )}
-                    </button>
+                    {onArchiveProject && (
+                      <button
+                        onClick={() => onArchiveProject(project)}
+                        title={project.isArchived ? 'Restore Project' : 'Archive Project'}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          project.isArchived
+                            ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
+                            : 'text-[#64748B] hover:text-[#DC5353] hover:bg-rose-50'
+                        }`}
+                        aria-label={project.isArchived ? 'Restore Project' : 'Archive Project'}
+                      >
+                        {project.isArchived ? (
+                          <RotateCcw className="w-4 h-4" />
+                        ) : (
+                          <Archive className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

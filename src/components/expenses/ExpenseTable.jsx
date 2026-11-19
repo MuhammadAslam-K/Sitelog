@@ -13,6 +13,7 @@ import {
   Scale
 } from 'lucide-react';
 import { TablePagination } from '../common/TablePagination.jsx';
+import { RecordedByBadge } from '../common/RecordedByBadge.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { EXPENSE_CATEGORIES } from '../../utils/constants.js';
 
@@ -78,6 +79,7 @@ export function ExpenseTable({
             <th className="py-3 px-4">Quantity</th>
             <th className="py-3 px-4">Agent / Vendor</th>
             <th className="py-3 px-4 text-right">Amount (₹)</th>
+            <th className="py-3 px-4">Added By</th>
             <th className="py-3 px-4 text-center">Actions</th>
           </tr>
         </thead>
@@ -165,6 +167,11 @@ export function ExpenseTable({
                 </span>
               </td>
 
+              {/* Added By */}
+              <td className="py-3 px-4 whitespace-nowrap">
+                <RecordedByBadge createdBy={expense.createdBy} updatedBy={expense.updatedBy} />
+              </td>
+
               {/* Actions */}
               <td className="py-3 px-4 whitespace-nowrap text-center">
                 <div className="flex items-center justify-center gap-1">
@@ -203,6 +210,7 @@ export function ExpenseTable({
                 expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
               )}
             </td>
+            <td></td>
             <td></td>
           </tr>
         </tfoot>

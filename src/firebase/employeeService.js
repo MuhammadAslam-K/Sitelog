@@ -16,6 +16,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
+import { getActorDisplayName } from '../utils/formatters.js';
 
 const EMPLOYEES_COLLECTION = 'employees';
 const COUNTERS_COLLECTION = 'counters';
@@ -106,7 +107,7 @@ export async function createEmployee(employeeData, user = null) {
       paidWages: paid,
       totalWages: total,
       isArchived: false,
-      createdBy: user?.email || user?.uid || 'HR Admin',
+      createdBy: getActorDisplayName(user),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -149,8 +150,8 @@ export async function updateEmployee(employeeId, employeeData, user = null) {
       updatedAt: new Date().toISOString()
     };
 
-    if (user?.email) {
-      updatePayload.updatedBy = user.email;
+    if (user) {
+      updatePayload.updatedBy = getActorDisplayName(user);
     }
 
     await updateDoc(docRef, updatePayload);
@@ -173,7 +174,7 @@ export async function toggleArchiveEmployee(employeeId, isArchived, user = null)
     await updateDoc(docRef, {
       isArchived,
       updatedAt: new Date().toISOString(),
-      archivedBy: isArchived ? (user?.email || 'Admin') : null
+      archivedBy: isArchived ? getActorDisplayName(user) : null
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${EMPLOYEES_COLLECTION}/${employeeId}`);

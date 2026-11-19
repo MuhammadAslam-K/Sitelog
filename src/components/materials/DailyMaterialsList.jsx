@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { MaterialTable } from './MaterialTable.jsx';
 import { DateInput } from '../common/DateInput.jsx';
-import { formatIndianCurrency, formatIndianCompact, formatDate } from '../../utils/formatters.js';
+import { formatIndianCurrency, formatIndianCompact, formatDate, formatRecordedBy } from '../../utils/formatters.js';
 
 export function DailyMaterialsList({
   materials = [],
@@ -59,7 +59,8 @@ export function DailyMaterialsList({
           (mat.materialId && mat.materialId.toLowerCase().includes(query)) ||
           (mat.projectName && mat.projectName.toLowerCase().includes(query)) ||
           (mat.vehicleNumber && mat.vehicleNumber.toLowerCase().includes(query)) ||
-          (mat.challanNo && mat.challanNo.toLowerCase().includes(query));
+          (mat.challanNo && mat.challanNo.toLowerCase().includes(query)) ||
+          formatRecordedBy(mat.createdBy).toLowerCase().includes(query);
         if (!matches) return false;
       }
 
@@ -114,7 +115,7 @@ export function DailyMaterialsList({
   const handleExportCSV = () => {
     if (filteredMaterials.length === 0) return;
 
-    const headers = ['Material ID', 'Date', 'Project ID', 'Project Name', 'Item', 'Quantity', 'Agent/Supplier', 'Amount (INR)', 'Vehicle No', 'Challan No', 'Status', 'Notes'];
+    const headers = ['Material ID', 'Date', 'Project ID', 'Project Name', 'Item', 'Quantity', 'Agent/Supplier', 'Amount (INR)', 'Vehicle No', 'Challan No', 'Status', 'Added By', 'Notes'];
     const rows = filteredMaterials.map((m) => [
       m.materialId || '',
       formatDate(m.date),
@@ -127,6 +128,7 @@ export function DailyMaterialsList({
       m.vehicleNumber || '',
       m.challanNo || '',
       m.status || '',
+      `"${formatRecordedBy(m.createdBy).replace(/"/g, '""')}"`,
       `"${(m.notes || '').replace(/"/g, '""')}"`
     ]);
 
@@ -172,13 +174,15 @@ export function DailyMaterialsList({
             </button>
           )}
 
-          <button
-            onClick={onAddNewMaterial}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#0F8B78] hover:bg-[#0d7867] rounded-xl transition-all shadow-2xs hover:shadow"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Record Material</span>
-          </button>
+          {onAddNewMaterial && (
+            <button
+              onClick={onAddNewMaterial}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#0F8B78] hover:bg-[#0d7867] rounded-xl transition-all shadow-2xs hover:shadow"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Record Material</span>
+            </button>
+          )}
         </div>
       </div>
 

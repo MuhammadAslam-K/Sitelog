@@ -16,7 +16,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
-import { calculateTotalBudget } from '../utils/formatters.js';
+import { calculateTotalBudget, getActorDisplayName } from '../utils/formatters.js';
 
 const PROJECTS_COLLECTION = 'projects';
 const COUNTERS_COLLECTION = 'counters';
@@ -108,7 +108,7 @@ export async function createProject(projectData, user = null) {
       otherTotalExpenses: otherExp,
       totalLabourExpenses: labourExp,
       totalBudget,
-      createdBy: user?.email || user?.uid || 'Field Engineer',
+      createdBy: getActorDisplayName(user),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -151,8 +151,8 @@ export async function updateProject(projectId, projectData, user = null) {
       updatedAt: new Date().toISOString()
     };
 
-    if (user?.email) {
-      updatePayload.updatedBy = user.email;
+    if (user) {
+      updatePayload.updatedBy = getActorDisplayName(user);
     }
 
     await updateDoc(docRef, updatePayload);
@@ -175,7 +175,7 @@ export async function toggleArchiveProject(projectId, isArchived, user = null) {
     await updateDoc(docRef, {
       isArchived,
       updatedAt: new Date().toISOString(),
-      archivedBy: isArchived ? (user?.email || 'Admin') : null
+      archivedBy: isArchived ? getActorDisplayName(user) : null
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${PROJECTS_COLLECTION}/${projectId}`);

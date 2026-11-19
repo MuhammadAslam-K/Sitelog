@@ -18,6 +18,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
+import { getActorDisplayName } from '../utils/formatters.js';
 
 const EXPENSES_COLLECTION = 'dailyExpenses';
 const PROJECTS_COLLECTION = 'projects';
@@ -195,7 +196,7 @@ export async function createExpense(expenseData, currentUser) {
     quantity: cleanQuantity,
     agent: cleanAgent,
     notes: expenseData.notes ? expenseData.notes.trim() : '',
-    createdBy: currentUser?.email || currentUser?.uid || 'Site Supervisor',
+    createdBy: getActorDisplayName(currentUser),
     createdAt: timestamp,
     updatedAt: timestamp
   };
@@ -252,6 +253,7 @@ export async function updateExpense(expenseId, expenseData, currentUser) {
     quantity: cleanQuantity,
     agent: cleanAgent,
     notes: expenseData.notes ? expenseData.notes.trim() : '',
+    ...(currentUser ? { updatedBy: getActorDisplayName(currentUser) } : {}),
     updatedAt: new Date().toISOString()
   };
 
@@ -455,7 +457,7 @@ export async function seedSampleExpensesIfEmpty(projects = [], currentUser = nul
     for (const item of sampleRecords) {
       await setDoc(doc(db, EXPENSES_COLLECTION, item.expenseId), {
         ...item,
-        createdBy: currentUser?.email || 'System Seed',
+        createdBy: getActorDisplayName(currentUser),
         createdAt: timestamp,
         updatedAt: timestamp
       });

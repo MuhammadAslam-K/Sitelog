@@ -18,7 +18,7 @@ import { ExpenseTable } from './ExpenseTable.jsx';
 import { MetricCard } from '../dashboard/MetricCard.jsx';
 import { DateInput } from '../common/DateInput.jsx';
 import { EXPENSE_CATEGORIES } from '../../utils/constants.js';
-import { formatIndianCurrency, formatIndianCompact } from '../../utils/formatters.js';
+import { formatIndianCurrency, formatIndianCompact, formatRecordedBy } from '../../utils/formatters.js';
 
 export function DailyExpensesList({
   expenses = [],
@@ -108,7 +108,8 @@ export function DailyExpensesList({
         const matchItem = (exp.item || '').toLowerCase().includes(search);
         const matchAgent = (exp.agent || '').toLowerCase().includes(search);
         const matchProject = (exp.projectName || '').toLowerCase().includes(search);
-        if (!matchId && !matchItem && !matchAgent && !matchProject) return false;
+        const matchAddedBy = formatRecordedBy(exp.createdBy).toLowerCase().includes(search);
+        if (!matchId && !matchItem && !matchAgent && !matchProject && !matchAddedBy) return false;
       }
 
       return true;
@@ -136,15 +137,17 @@ export function DailyExpensesList({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            onClick={onAddNewExpense}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] transition-all shadow-2xs hover:shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Add Daily Expense
-          </button>
-        </div>
+        {onAddNewExpense && (
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={onAddNewExpense}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] transition-all shadow-2xs hover:shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              Add Daily Expense
+            </button>
+          </div>
+        )}
       </div>
 
       {/* KPI Summary Cards */}

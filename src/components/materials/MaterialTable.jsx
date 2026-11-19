@@ -14,6 +14,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { TablePagination } from '../common/TablePagination.jsx';
+import { RecordedByBadge } from '../common/RecordedByBadge.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 
 export function MaterialTable({
@@ -98,6 +99,7 @@ export function MaterialTable({
             <th className="py-3 px-4 text-right">Amount (₹)</th>
             <th className="py-3 px-4">Logistics / Challan</th>
             <th className="py-3 px-4 text-center">Status</th>
+            <th className="py-3 px-4">Added By</th>
             <th className="py-3 px-4 text-center">Actions</th>
           </tr>
         </thead>
@@ -204,6 +206,11 @@ export function MaterialTable({
               {/* Status */}
               <td className="py-3 px-4 text-center whitespace-nowrap">
                 {getStatusBadge(mat.status)}
+              </td>
+
+              {/* Added By */}
+              <td className="py-3 px-4 whitespace-nowrap">
+                <RecordedByBadge createdBy={mat.createdBy} updatedBy={mat.updatedBy} />
               </td>
 
               {/* Actions */}

@@ -22,6 +22,7 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
 import { getWagePaidAmount, getWagePayableBalance } from '../utils/wageCalculator.js';
+import { getActorDisplayName } from '../utils/formatters.js';
 
 const WAGES_COLLECTION = 'dailyWages';
 const EMPLOYEES_COLLECTION = 'employees';
@@ -218,7 +219,7 @@ export async function createDailyWage(wageData, user = null) {
       balance,
       status,
       notes: wageData.notes?.trim() || '',
-      createdBy: user?.email || user?.uid || 'Site Supervisor',
+      createdBy: getActorDisplayName(user),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -294,8 +295,8 @@ export async function updateDailyWage(wageId, wageData, user = null) {
       updatedAt: new Date().toISOString()
     };
 
-    if (user?.email) {
-      updatePayload.updatedBy = user.email;
+    if (user) {
+      updatePayload.updatedBy = getActorDisplayName(user);
     }
 
     await updateDoc(docRef, updatePayload);
@@ -333,7 +334,7 @@ export async function settleDailyWage(wageId, user = null) {
     await updateDoc(docRef, {
       status: 'Paid',
       updatedAt: new Date().toISOString(),
-      settledBy: user?.email || 'Supervisor'
+      settledBy: getActorDisplayName(user)
     });
 
     syncEmployeeWages(data.employeeId);
@@ -360,7 +361,7 @@ export async function settleEmployeeWageBatch(entries = [], user = null) {
     const sorted = [...entries].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     const batch = writeBatch(db);
     const now = new Date().toISOString();
-    const settledBy = user?.email || 'Supervisor';
+    const settledBy = getActorDisplayName(user);
 
     // 1. Collect excess advance pool from entries where advance > earned wages
     let excessAdvancePool = 0;

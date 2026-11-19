@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { TagBadge } from '../common/Badge.jsx';
 import { TablePagination } from '../common/TablePagination.jsx';
+import { RecordedByBadge } from '../common/RecordedByBadge.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { calculateEmployeeWageReflection } from '../../utils/wageCalculator.js';
 import { generateWageSlipPDF } from '../../utils/pdfGenerator.js';
@@ -67,6 +68,7 @@ export function EmployeeTable({
     { key: 'pendingWages', label: 'Pending Wages (₹)', align: 'right', sortable: true },
     { key: 'paidWages', label: 'Paid Wages (₹)', align: 'right', sortable: true },
     { key: 'totalWages', label: 'Total Wages (₹)', align: 'right', sortable: true },
+    { key: 'createdBy', label: 'Added By', align: 'left', sortable: true },
     { key: 'actions', label: 'Actions', align: 'center', sortable: false }
   ];
 
@@ -289,6 +291,11 @@ export function EmployeeTable({
                     </button>
                   </td>
 
+                  {/* Added By */}
+                  <td className="py-3.5 px-3.5 whitespace-nowrap">
+                    <RecordedByBadge createdBy={emp.createdBy} updatedBy={emp.updatedBy} />
+                  </td>
+
                   {/* Actions */}
                   <td className="py-3.5 px-3.5 text-center whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1.5">
@@ -310,31 +317,35 @@ export function EmployeeTable({
                         <FileDown className="w-4 h-4" />
                       </button>
 
-                      <button
-                        onClick={() => onEditEmployee(emp)}
-                        title="Edit Employee"
-                        className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
-                        aria-label="Edit Employee"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
+                      {onEditEmployee && (
+                        <button
+                          onClick={() => onEditEmployee(emp)}
+                          title="Edit Employee"
+                          className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
+                          aria-label="Edit Employee"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                      )}
 
-                      <button
-                        onClick={() => onArchiveEmployee(emp)}
-                        title={emp.isArchived ? 'Restore Employee' : 'Archive Employee'}
-                        className={`p-1.5 rounded-lg transition-colors ${
-                          emp.isArchived
-                            ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
-                            : 'text-[#64748B] hover:text-[#DC5353] hover:bg-rose-50'
-                        }`}
-                        aria-label={emp.isArchived ? 'Restore Employee' : 'Archive Employee'}
-                      >
-                        {emp.isArchived ? (
-                          <RotateCcw className="w-4 h-4" />
-                        ) : (
-                          <Archive className="w-4 h-4" />
-                        )}
-                      </button>
+                      {onArchiveEmployee && (
+                        <button
+                          onClick={() => onArchiveEmployee(emp)}
+                          title={emp.isArchived ? 'Restore Employee' : 'Archive Employee'}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            emp.isArchived
+                              ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
+                              : 'text-[#64748B] hover:text-[#DC5353] hover:bg-rose-50'
+                          }`}
+                          aria-label={emp.isArchived ? 'Restore Employee' : 'Archive Employee'}
+                        >
+                          {emp.isArchived ? (
+                            <RotateCcw className="w-4 h-4" />
+                          ) : (
+                            <Archive className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

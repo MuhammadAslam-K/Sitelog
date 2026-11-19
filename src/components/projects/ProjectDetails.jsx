@@ -21,7 +21,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { StatusBadge, TagBadge } from '../common/Badge.jsx';
-import { formatIndianCurrency, formatIndianCompact, formatDate } from '../../utils/formatters.js';
+import { formatIndianCurrency, formatIndianCompact, formatDate, formatRecordedBy } from '../../utils/formatters.js';
 import { getWagePaidAmount } from '../../utils/wageCalculator.js';
 import { ExpenseTable } from '../expenses/ExpenseTable.jsx';
 import { WageTable } from '../wages/WageTable.jsx';
@@ -110,42 +110,48 @@ export function ProjectDetails({
               <span>•</span>
               <span className="flex items-center gap-1">
                 <User className="w-3.5 h-3.5 text-slate-400" />
-                Recorded by: <span className="text-[#172B4D]">{project.createdBy || 'Field Engineer'}</span>
+                Recorded by: <strong className="text-[#172B4D]">{formatRecordedBy(project.createdBy)}</strong>
               </span>
             </p>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => onEdit(project)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-[#172B4D] bg-white hover:bg-slate-50 border border-[#E2E8F0] transition-colors shadow-2xs"
-            >
-              <Edit3 className="w-4 h-4 text-[#2563EB]" />
-              Edit Project
-            </button>
-
-            <button
-              onClick={() => onArchiveToggle(project)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-2xs ${
-                project.isArchived
-                  ? 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
-                  : 'bg-rose-50 text-[#DC5353] hover:bg-rose-100 border border-rose-200'
-              }`}
-            >
-              {project.isArchived ? (
-                <>
-                  <RotateCcw className="w-4 h-4" />
-                  Restore Project
-                </>
-              ) : (
-                <>
-                  <Archive className="w-4 h-4" />
-                  Archive Project
-                </>
+          {(onEdit || onArchiveToggle) && (
+            <div className="flex items-center gap-2.5 shrink-0">
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(project)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-[#172B4D] bg-white hover:bg-slate-50 border border-[#E2E8F0] transition-colors shadow-2xs"
+                >
+                  <Edit3 className="w-4 h-4 text-[#2563EB]" />
+                  Edit Project
+                </button>
               )}
-            </button>
-          </div>
+
+              {onArchiveToggle && (
+                <button
+                  onClick={() => onArchiveToggle(project)}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-2xs ${
+                    project.isArchived
+                      ? 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
+                      : 'bg-rose-50 text-[#DC5353] hover:bg-rose-100 border border-rose-200'
+                  }`}
+                >
+                  {project.isArchived ? (
+                    <>
+                      <RotateCcw className="w-4 h-4" />
+                      Restore Project
+                    </>
+                  ) : (
+                    <>
+                      <Archive className="w-4 h-4" />
+                      Archive Project
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Tab Bar */}
@@ -329,6 +335,7 @@ export function ProjectDetails({
                   {project.updatedAt && (
                     <p className="text-[11px] text-[#64748B] font-mono">
                       Last Update: {formatDate(project.updatedAt)}
+                      {project.updatedBy ? ` (${formatRecordedBy(project.updatedBy)})` : ''}
                     </p>
                   )}
                 </div>

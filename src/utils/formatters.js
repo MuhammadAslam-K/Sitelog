@@ -2,6 +2,8 @@
  * Formatting utilities for Kerala Road Construction Management System
  */
 
+import { DEFAULT_SUPER_ADMIN } from './constants.js';
+
 /**
  * Formats a number to Indian Rupee standard format (e.g., ₹1,25,00,000)
  * @param {number|string} amount
@@ -97,3 +99,52 @@ export function calculateTotalBudget(otherExp, labourExp) {
   const l = Number(labourExp) || 0;
   return Math.round((o + l) * 100) / 100;
 }
+
+/**
+ * Returns canonical attribution label for the active user:
+ * - Super Admin -> "Admin"
+ * - Sub-Admin   -> User's full name (fallback to username/email)
+ * @param {Object|null} user
+ * @returns {string}
+ */
+export function getActorDisplayName(user) {
+  if (!user) return 'Admin';
+
+  const emailLower = (user.email || '').trim().toLowerCase();
+  const isSuper =
+    user.role === 'Super Admin' ||
+    user.userId === DEFAULT_SUPER_ADMIN.userId ||
+    emailLower === DEFAULT_SUPER_ADMIN.email.toLowerCase();
+
+  if (isSuper) {
+    return 'Admin';
+  }
+
+  return (user.name || user.username || user.email || 'Sub Admin').trim();
+}
+
+/**
+ * Normalizes a stored createdBy / updatedBy / settledBy value for display:
+ * Maps Super Admin identifiers (email, userId, name) to "Admin" and preserves sub-admin names.
+ * @param {string|null|undefined} rawValue
+ * @returns {string}
+ */
+export function formatRecordedBy(rawValue) {
+  if (!rawValue) return 'Admin';
+  const trimmed = String(rawValue).trim();
+  if (!trimmed) return 'Admin';
+
+  const lower = trimmed.toLowerCase();
+  if (
+    lower === 'admin' ||
+    lower === 'super admin' ||
+    lower === DEFAULT_SUPER_ADMIN.email.toLowerCase() ||
+    lower === DEFAULT_SUPER_ADMIN.userId.toLowerCase() ||
+    lower === DEFAULT_SUPER_ADMIN.name.toLowerCase()
+  ) {
+    return 'Admin';
+  }
+
+  return trimmed;
+}
+

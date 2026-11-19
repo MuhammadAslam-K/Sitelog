@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { TablePagination } from '../common/TablePagination.jsx';
+import { RecordedByBadge } from '../common/RecordedByBadge.jsx';
 import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
 import { getWagePayableBalance, getWagePaidAmount } from '../../utils/wageCalculator.js';
 
@@ -111,6 +112,7 @@ export function WageTable({
     { key: 'balance', label: 'Balance (₹)', align: 'right', sortable: true },
     { key: 'status', label: 'Status', align: 'center', sortable: true },
     { key: 'notes', label: 'Notes / Remarks', align: 'left', sortable: false },
+    { key: 'createdBy', label: 'Added By', align: 'left', sortable: true },
     { key: 'actions', label: 'Actions', align: 'center', sortable: false }
   ];
 
@@ -456,6 +458,15 @@ export function WageTable({
                       ) : (
                         <span className="text-slate-400">-</span>
                       )}
+                    </td>
+
+                    {/* Added By */}
+                    <td className="py-3.5 px-3.5 whitespace-nowrap">
+                      <RecordedByBadge
+                        createdBy={item.createdBy}
+                        updatedBy={item.updatedBy}
+                        settledBy={item.settledBy}
+                      />
                     </td>
 
                     {/* Actions */}

@@ -80,15 +80,17 @@ export function DashboardOverview({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            onClick={onAddNewProject}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] transition-all shadow-2xs hover:shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Add Project
-          </button>
-        </div>
+        {onAddNewProject && (
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={onAddNewProject}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] transition-all shadow-2xs hover:shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              Add Project
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Primary KPI Metrics: Projects & Active Workforce */}

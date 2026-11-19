@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { EmployeeTable } from './EmployeeTable.jsx';
 import { EMPLOYEE_ROLES, EMPLOYEE_STATUSES } from '../../utils/constants.js';
-import { formatIndianCurrency, formatIndianCompact } from '../../utils/formatters.js';
+import { formatIndianCurrency, formatIndianCompact, formatRecordedBy } from '../../utils/formatters.js';
 import { calculateEmployeeWageReflection } from '../../utils/wageCalculator.js';
 
 export function EmployeesList({
@@ -75,7 +75,8 @@ export function EmployeesList({
           const matchesId = emp.employeeId?.toLowerCase().includes(q);
           const matchesName = emp.name?.toLowerCase().includes(q);
           const matchesPhone = emp.phone?.toLowerCase().includes(q);
-          if (!matchesId && !matchesName && !matchesPhone) return false;
+          const matchesAddedBy = formatRecordedBy(emp.createdBy).toLowerCase().includes(q);
+          if (!matchesId && !matchesName && !matchesPhone && !matchesAddedBy) return false;
         }
 
         // Role filter
@@ -180,15 +181,17 @@ export function EmployeesList({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            onClick={onAddNewEmployee}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs hover:shadow-xs transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Employee
-          </button>
-        </div>
+        {onAddNewEmployee && (
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={onAddNewEmployee}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs hover:shadow-xs transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Add New Employee
+            </button>
+          </div>
+        )}
       </div>
 
       {/* KPI Overview Chips (Live Reflected from Daily Wages Status) */}

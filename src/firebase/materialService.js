@@ -18,6 +18,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './config.js';
+import { getActorDisplayName } from '../utils/formatters.js';
 
 const MATERIALS_COLLECTION = 'materials';
 const COUNTERS_COLLECTION = 'counters';
@@ -186,7 +187,7 @@ export async function createMaterial(materialData, currentUser = null) {
     challanNo: (materialData.challanNo || '').trim() || null,
     status: materialData.status || 'Received',
     notes: (materialData.notes || '').trim() || null,
-    createdBy: currentUser?.email || currentUser?.uid || 'supervisor',
+    createdBy: getActorDisplayName(currentUser),
     createdAt: now,
     updatedAt: now
   };
@@ -207,7 +208,7 @@ export async function createMaterial(materialData, currentUser = null) {
  * @param {Object} updates
  * @returns {Promise<Object>}
  */
-export async function updateMaterial(materialId, updates) {
+export async function updateMaterial(materialId, updates, currentUser = null) {
   if (!materialId) throw new Error('Material ID is required for update');
 
   const validation = validateMaterialData(updates);
@@ -234,6 +235,7 @@ export async function updateMaterial(materialId, updates) {
     challanNo: (updates.challanNo || '').trim() || null,
     status: updates.status || 'Received',
     notes: (updates.notes || '').trim() || null,
+    ...(currentUser ? { updatedBy: getActorDisplayName(currentUser) } : {}),
     updatedAt: new Date().toISOString()
   };
 
@@ -268,7 +270,7 @@ export async function deleteMaterial(materialId) {
  * Seeds realistic Kerala road construction material procurement data if the collection is empty.
  * @param {Array} projects - Available active projects
  */
-export async function seedSampleMaterialsIfEmpty(projects = []) {
+export async function seedSampleMaterialsIfEmpty(projects = [], currentUser = null) {
   try {
     const snap = await getDocs(collection(db, MATERIALS_COLLECTION));
     if (!snap.empty) {
@@ -406,7 +408,7 @@ export async function seedSampleMaterialsIfEmpty(projects = []) {
     for (const item of sampleMaterials) {
       await setDoc(doc(db, MATERIALS_COLLECTION, item.materialId), {
         ...item,
-        createdBy: 'system_bootstrap',
+        createdBy: currentUser ? getActorDisplayName(currentUser) : 'Admin',
         createdAt: now,
         updatedAt: now
       });

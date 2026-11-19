@@ -21,7 +21,7 @@ import { WageTable } from './WageTable.jsx';
 import { WageSlipPdfModal } from './WageSlipPdfModal.jsx';
 import { DateInput } from '../common/DateInput.jsx';
 import { ATTENDANCE_STATUSES, WAGE_PAYMENT_STATUSES } from '../../utils/constants.js';
-import { formatIndianCurrency, formatDate } from '../../utils/formatters.js';
+import { formatIndianCurrency, formatDate, formatRecordedBy } from '../../utils/formatters.js';
 import { getWagePayableBalance, getWagePaidAmount } from '../../utils/wageCalculator.js';
 
 export function DailyWagesList({
@@ -158,7 +158,8 @@ export function DailyWagesList({
           const matchesEmp = item.employeeName?.toLowerCase().includes(q) || item.employeeId?.toLowerCase().includes(q);
           const matchesPrj = item.projectName?.toLowerCase().includes(q) || item.projectId?.toLowerCase().includes(q);
           const matchesNotes = item.notes?.toLowerCase().includes(q);
-          if (!matchesId && !matchesEmp && !matchesPrj && !matchesNotes) return false;
+          const matchesAddedBy = formatRecordedBy(item.createdBy).toLowerCase().includes(q);
+          if (!matchesId && !matchesEmp && !matchesPrj && !matchesNotes && !matchesAddedBy) return false;
         }
 
         // Filter based on Employee Name / ID
@@ -327,13 +328,15 @@ export function DailyWagesList({
             <span>Select Dates & Download PDF</span>
           </button>
 
-          <button
-            onClick={onAddNewWage}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs hover:shadow-xs transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Add Daily Wage / Advance
-          </button>
+          {onAddNewWage && (
+            <button
+              onClick={onAddNewWage}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#0F8B78] hover:bg-[#0D7A69] shadow-2xs hover:shadow-xs transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Add Daily Wage / Advance
+            </button>
+          )}
         </div>
       </div>
 
